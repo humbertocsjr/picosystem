@@ -5,6 +5,12 @@ all clean:
 	$(MAKEDIR) lib
 	$(MAKEDIR) boot
 	$(MAKEDIR) distro
+	@make --no-print-directory main-$@
+
+main-all:
+	@echo >> /dev/null
+main-clean:
+	@rm -f *.deb *.rpm
 
 sdk:
 	$(MAKEDIR) devkit
