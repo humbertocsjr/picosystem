@@ -1,0 +1,7 @@
+
+
+main()
+{
+    tty_write_str("Pico System Loader\n");
+}
+

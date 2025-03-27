@@ -1,0 +1,7 @@
+tty_write_str(str)
+{
+    while(@str)
+    {
+        tty_write_c(@str++);
+    }
+}

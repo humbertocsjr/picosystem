@@ -1,0 +1,10 @@
+tty_write_c(c)
+{
+    asm
+    (
+        "mov ah, 0x2",
+        "mov dl, [bp+4]",
+        "int 0x21"
+    );
+    if(c == '\n') tty_write_c('\r');
+}

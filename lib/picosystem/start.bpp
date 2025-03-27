@@ -1,0 +1,12 @@
+main();
+
+start()
+{
+    main();
+    asm
+    (
+        "mov bx, ax",
+        "mov ax, 0x1",
+        "int 0x80"
+    );
+}
