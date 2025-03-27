@@ -1,0 +1,6 @@
+tty_write_uint(value)
+{
+    auto next = unsigned(value / 10);
+    if(next != 0) tty_write_uint(next);
+    tty_write_c(unsigned(value % 10 + '0'));
+}

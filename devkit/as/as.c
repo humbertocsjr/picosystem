@@ -31,7 +31,7 @@ void process_file(char *filename)
 void reset()
 {
     memset(&_header, 0, sizeof(aout_t));
-    _header.signature = AOUT_HC_IX_OBJ;
+    _header.signature = AOUT_PICO_OBJ;
 }
 
 void usage(int retval)

@@ -34,8 +34,8 @@ struct section
 // CS=DS=ES=SS
 #define AOUT_TINY_V7 0407
 // CS | DS=ES=SS
-#define AOUT_HC_IX_EXEC 0511
-#define AOUT_HC_IX_OBJ 0500
+#define AOUT_PICO_EXEC 0511
+#define AOUT_PICO_OBJ 0500
 
 struct aout
 {

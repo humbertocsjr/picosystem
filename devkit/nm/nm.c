@@ -32,8 +32,8 @@ int main(int argc, char **argv)
             fread(&aout, 1, sizeof(aout_t), file);
             if
             (
-                aout.signature == AOUT_HC_IX_EXEC ||
-                aout.signature == AOUT_HC_IX_OBJ
+                aout.signature == AOUT_PICO_EXEC ||
+                aout.signature == AOUT_PICO_OBJ
             )
             {
                 fseek(file, (size_t)aout.text + (size_t)aout.data, SEEK_CUR);

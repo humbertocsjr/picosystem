@@ -2,6 +2,13 @@
 
 SDK for Pico Softwares development.
 
+## Targets
+
+- i86
+    - DOS 2 or Compatible
+    - Pico System Software
+    - Standalone (BIOS calls)
+
 ## Tools
 
 - i86-ar: Archiver

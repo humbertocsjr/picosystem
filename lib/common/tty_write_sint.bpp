@@ -1,0 +1,12 @@
+tty_write_sint(value)
+{
+    auto next;
+    if(value < 0)
+    {
+        value = 0-value;
+        tty_write_c('-');
+    }
+    next = value / 10;
+    if(next != 0) tty_write_sint(next);
+    tty_write_c(value % 10 + '0');
+}

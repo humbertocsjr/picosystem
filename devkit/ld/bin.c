@@ -102,7 +102,7 @@ void output_bin(int stack_size, int include_bss, int32_t bin_offset)
     bss_offset = bss_start;
     for(i = 0; i < FILES_MAX; i++)
     {
-        if(_files[i].name && _files[i].output_include && _files[i].aout_header.signature == AOUT_HC_IX_OBJ)
+        if(_files[i].name && _files[i].output_include && _files[i].aout_header.signature == AOUT_PICO_OBJ)
         {
             fseek(_files[i].file, _files[i].aout_offset + _files[i].aout_header.text + _files[i].aout_header.data + sizeof(aout_t), SEEK_SET);
             for(s = 0; s < _files[i].aout_header.syms; s++)
@@ -130,7 +130,7 @@ void output_bin(int stack_size, int include_bss, int32_t bin_offset)
     bss_offset = bss_start;
     for(i = 0; i < FILES_MAX; i++)
     {
-        if(_files[i].name && _files[i].output_include && _files[i].aout_header.signature == AOUT_HC_IX_OBJ)
+        if(_files[i].name && _files[i].output_include && _files[i].aout_header.signature == AOUT_PICO_OBJ)
         {
             fseek(_files[i].file, _files[i].aout_offset + _files[i].aout_header.text + _files[i].aout_header.data + sizeof(aout_t), SEEK_SET);
             set_value("__textoff", text_offset);

@@ -66,7 +66,7 @@ int main(int argc, char **argv)
             size = ftell(in);
             fseek(in, 0, SEEK_SET);
             len = fread(buffer, 1, 512, in);
-            if(aout_header->signature == AOUT_HC_IX_OBJ)
+            if(aout_header->signature == AOUT_PICO_OBJ)
             {
                 ar_header.signature = AR_AOUT;
             }

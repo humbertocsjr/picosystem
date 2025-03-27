@@ -88,7 +88,7 @@ symbol_t *find_symbol(char *name)
             sym = &_symbols[i];
             for(lib = 0; lib < FILES_MAX; lib++)
             {
-                if(_files[lib].file && _files[lib].aout_header.signature == AOUT_HC_IX_OBJ)
+                if(_files[lib].file && _files[lib].aout_header.signature == AOUT_PICO_OBJ)
                 {
                     //fseek(_files[lib].file, _files[lib].aout_offset + _files[lib].aout_header.text + _files[lib].aout_header.data + sizeof(aout_t), SEEK_SET);
                     for(s = 0; s < _files[lib].aout_header.syms; s++)

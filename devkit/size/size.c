@@ -32,8 +32,8 @@ int main(int argc, char **argv)
             fread(&aout, 1, sizeof(aout_t), file);
             if
             (
-                aout.signature == AOUT_HC_IX_EXEC ||
-                aout.signature == AOUT_HC_IX_OBJ ||
+                aout.signature == AOUT_PICO_EXEC ||
+                aout.signature == AOUT_PICO_OBJ ||
                 aout.signature == AOUT_TINY_V7 ||
                 aout.signature == AOUT_SMALL_V7
             )

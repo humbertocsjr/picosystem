@@ -14,7 +14,7 @@ void init()
     int i;
     _out_name = "a.out";
     memset(&_aout, 0, sizeof(aout_t));
-    _aout.signature = AOUT_HC_IX_EXEC;
+    _aout.signature = AOUT_PICO_EXEC;
     for(i = 0; i < FILES_MAX; i++)
     {
         memset(&_files[i], 0, sizeof(file_t));
@@ -121,8 +121,7 @@ void usage(int retval)
     printf(" -l library      add library (auto include 'lib' prefix)\n");
     printf("Output format:\n");
     #ifdef OUT_V7
-    printf(" hcix            produce HC-IX a.out\n");
-    printf(" hcsys           produce HCSystem a.out\n");
+    printf(" picosystem|pico produce Pico System Software a.out\n");
     printf(" v7|v7small      produce Seventh Edition UNIX a.out\n");
     printf(" v7tiny          tiny model output (text/data/bss in one segment)\n");
     #endif
@@ -156,9 +155,9 @@ int main(int argc, char **argv)
                 break;
             case 'f':
                 #ifdef OUT_V7
-                if(!strcmp(optarg, "hcix") || !strcmp(optarg, "hcsys"))
+                if(!strcmp(optarg, "pico") || !strcmp(optarg, "picosystem"))
                 {
-                    _aout.signature = AOUT_HC_IX_EXEC;
+                    _aout.signature = AOUT_PICO_EXEC;
                     output = output_v7;
                 }
                 else if(!strcmp(optarg, "v7") || !strcmp(optarg, "v7small"))
