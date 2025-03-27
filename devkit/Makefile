@@ -1,6 +1,8 @@
 MAKEDIR = @make --no-print-directory $@ -C
 
 all clean sdk:
+	@mkdir -p bin32
+	@mkdir -p bin64
 	$(MAKEDIR) ar
 	$(MAKEDIR) as
 	$(MAKEDIR) bpp

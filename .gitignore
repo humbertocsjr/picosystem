@@ -6,5 +6,9 @@
 *.app
 *.img
 *.a
+*.deb
+*.rpm
+devkit/bin32
+devkit/bin64
 devkit/i86-*
 devkit/picofs

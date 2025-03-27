@@ -1,0 +1,5 @@
+Package: picosdk
+Version: 0.97
+Maintainer: Humberto Costa dos Santos Junior
+Architecture: i386
+Description: SDK for Retrocomputing

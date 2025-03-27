@@ -12,11 +12,11 @@
 - Install C Development Kit/NASM for your linux
     - Fedora
         ```sh
-        sudo dnf install @c-development @development-tools nasm
+        sudo dnf install @c-development @development-tools nasm dpkg libstdc++.i686 glibc-devel.i686 alien mingw32-gcc mingw64-gcc 
         ```
     - Debian/Ubuntu
         ```sh
-        sudo apt install build-essential nasm
+        sudo apt install build-essential nasm gcc-multilib alien
         ```
 - Compile Pico SDK
     ```sh

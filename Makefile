@@ -11,6 +11,32 @@ sdk:
 	$(MAKEDIR) lib
 
 
+deb: sdk
+	@install -d devkit-deb/DEBIAN
+	@install devkit/debpkg32 devkit-deb/DEBIAN/control
+	@install -d devkit-deb/usr/local/bin
+	@install devkit/bin32/* devkit-deb/usr/local/bin
+	@install -d devkit-deb/usr/local/picosdk
+	@install -d devkit-deb/usr/local/picosdk/lib
+	@install lib/*.a devkit-deb/usr/local/picosdk/lib/
+	@install -d devkit-deb/usr/local/picosdk/include
+	@install include/*.bpp devkit-deb/usr/local/picosdk/include/
+	@dpkg-deb --root-owner-group --build devkit-deb picosdk.i386.deb
+	@rm -Rf devkit-deb 
+	@alien --to-rpm picosdk.i386.deb
+	@install -d devkit-deb/DEBIAN
+	@install devkit/debpkg64 devkit-deb/DEBIAN/control
+	@install -d devkit-deb/usr/local/bin
+	@install devkit/bin64/* devkit-deb/usr/local/bin
+	@install -d devkit-deb/usr/local/picosdk
+	@install -d devkit-deb/usr/local/picosdk/lib
+	@install lib/*.a devkit-deb/usr/local/picosdk/lib/
+	@install -d devkit-deb/usr/local/picosdk/include
+	@install include/*.bpp devkit-deb/usr/local/picosdk/include/
+	@dpkg-deb --root-owner-group --build devkit-deb picosdk.amd64.deb
+	@rm -Rf devkit-deb 
+	@alien --to-rpm picosdk.amd64.deb
+
 install: sdk
 	@install -d /usr/local/bin
 	@install devkit/i86-* /usr/local/bin
