@@ -1,0 +1,10 @@
+*.boot
+*.o
+*.sys
+*.com
+*.bin
+*.app
+*.img
+*.a
+devkit/i86-*
+devkit/picofs
