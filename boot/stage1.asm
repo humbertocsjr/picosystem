@@ -21,7 +21,7 @@ _start:
     mov [var_heads], ax
     mov [var_sects], ax
     int 0x12
-    cmp ax, 191
+    cmp ax, 189
     jae .mem_ok
         call error
         db "MEM",0

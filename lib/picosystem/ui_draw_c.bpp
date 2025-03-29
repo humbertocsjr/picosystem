@@ -1,11 +1,22 @@
 
 ui_draw_c(x,y,c,attrib,count)
 {
-    auto pos = (y * 80 + x) << 1;
-    auto i;
-    for(i = 0; i < count; i++)
-    {
-        *0xb800:pos = c | (attrib << 8);
-        pos = pos + 2;
-    }
+    asm
+    (
+        "push es",
+        "mov ax, 0xb800",
+        "mov es, ax",
+        "mov ax, [bp+6]",
+        "mov bx, 80",
+        "mul bx",
+        "add ax, [bp+4]",
+        "shl ax, 1",
+        "mov di, ax",
+        "mov cx, [bp+12]",
+        "mov al, [bp+8]",
+        "mov ah, [bp+10]",
+        "rep",
+        "stosw",
+        "pop es"
+    );
 }
