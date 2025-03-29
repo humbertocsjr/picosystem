@@ -10,6 +10,7 @@
 *.deb
 *.rpm
 *.kext
+*.zip
 /devkit/bin32
 /devkit/bin64
 /devkit/binarm64
@@ -17,3 +18,5 @@
 /devkit/binwin64
 /devkit/i86-*
 /devkit/picofs
+/devkit-deb/*
+/devkit-deb/**/*
