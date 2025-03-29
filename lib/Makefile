@@ -8,7 +8,7 @@ all sdk: $(OUT)
 	@echo >> /dev/null
 
 clean:
-	@rm -f $(OUT) $(wildcard common/*.o)  $(wildcard standalone/*.o)
+	@rm -f $(OUT) $(wildcard common/*.o)  $(wildcard standalone/*.o)  $(wildcard dos/*.o)
 
 %.s: ../include/stdlib.bpp %.bpp
 	@echo [BPP] $@

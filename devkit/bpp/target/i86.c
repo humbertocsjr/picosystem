@@ -512,3 +512,69 @@ void cg_dec()
 {
     out("dec ax");
 }
+
+void cg_xor()
+{
+    out("xor ax, cx");
+}
+
+void cg_or()
+{
+    out("or ax, cx");
+}
+
+void cg_and()
+{
+    out("and ax, cx");
+}
+
+void cg_shl()
+{
+    out("shl ax, cl");
+}
+
+void cg_shr()
+{
+    out("shr ax, cl");
+}
+
+void cg_load_far_byte()
+{
+    out("push ds");
+    out("mov ds, ax");
+    out("mov si, cx");
+    out("mov al, [si]");
+    out("xor ah, ah");
+    out("pop ds");
+}
+
+void cg_load_far_word()
+{
+    out("push ds");
+    out("mov ds, ax");
+    out("mov si, cx");
+    out("mov ax, [si]");
+    out("pop ds");
+}
+
+void cg_store_far_byte()
+{
+    out("pop bx");
+    out("push ds");
+    out("mov ds, ax");
+    out("mov si, cx");
+    out("mov [si], bl");
+    out("pop ds");
+}
+
+void cg_store_far_word()
+{
+    out("pop bx");
+    out("push ds");
+    out("mov ds, ax");
+    out("mov si, cx");
+    out("mov [si], bx");
+    out("pop ds");
+}
+
+

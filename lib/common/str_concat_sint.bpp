@@ -1,0 +1,9 @@
+str_concat_sint(dst, value, size)
+{
+    if(value < 0)
+    {
+        value = -value;
+        str_concat_c(dst, '-', size);
+    }
+    str_concat_uint(dst, value, size);
+}

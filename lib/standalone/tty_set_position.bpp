@@ -1,0 +1,11 @@
+tty_set_position(x, y)
+{
+    asm
+    (
+        "mov ah, 2",
+        "mov bh, 0",
+        "mov dh, [bp+6]",
+        "mov dl, [bp+4]",
+        "int 0x10"
+    );
+}

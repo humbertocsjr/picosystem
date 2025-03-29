@@ -1,0 +1,22 @@
+main()
+{
+    auto i, j, cfg_seg, cfg_off, module_seg, txt[128 bytes];
+    tty_clean();
+    tty_hide_cursor();
+    cfg_seg = boot_get_arg0();
+    cfg_off = boot_get_arg1();
+    ui_draw_frame(10,3, 60, 19, "Pico System Software");
+    for(i = 0; i < 16; i ++)
+    {
+        // Load Module
+        module_seg = *cfg_seg:(cfg_off + (i << 1));
+        if(module_seg)
+        {
+            str_clean(txt, 128);
+            str_concat(txt, "Starting extension at $", 128);
+            str_concat_hex(txt, module_seg, 128);
+            str_concat(txt, "0", 128);
+            ui_draw_text(12, 4+j++, 56, 1, txt, 7);
+        }
+    }
+}

@@ -1,0 +1,15 @@
+far_write(seg, dst, src, size)
+{
+    asm
+    (
+        "mov ax, [bp+4]",
+        "mov di, [bp+6]",
+        "mov si, [bp+8]",
+        "mov cx, [bp+10]",
+        "push es",
+        "mov es, ax",
+        "rep",
+        "movsb",
+        "pop es",
+    );
+}

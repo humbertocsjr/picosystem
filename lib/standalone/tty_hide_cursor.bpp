@@ -1,0 +1,9 @@
+tty_hide_cursor()
+{
+    asm
+    (
+        "mov ah, 1",
+        "mov cx, 0x2000",
+        "int 0x10"
+    );
+}

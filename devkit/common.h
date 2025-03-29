@@ -39,14 +39,14 @@ struct section
 
 struct aout
 {
-    uint16_t signature;
-    uint16_t text;
-    uint16_t data;
-    uint16_t bss;
-    uint16_t syms;
-    uint16_t entry;
-    uint16_t pad;
-    uint16_t relocs;
+    uint16_t signature; // 0
+    uint16_t text; // 2
+    uint16_t data; // 4
+    uint16_t bss; // 6
+    uint16_t syms; // 8
+    uint16_t entry; // 10
+    uint16_t pad; // 12
+    uint16_t relocs; // 14
 };
 #define aout_t struct aout
 

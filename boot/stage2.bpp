@@ -1,7 +1,267 @@
+auto _buffer[512 bytes];
+auto _version = 0, _revision = 90;
+auto _dest_seg = 0x60, _dest_off = 0, _kernel_seg, _kernel_cfg[20];
 
+disk_read(disk, heads, sects, address, buffer)
+{//       4     6      8      10       12
+    auto ret = 1;
+    auto tries = 3;
+    asm
+    (
+        "mov cx, [bp-4]",
+        ".loop:",
+        "mov [bp-4], cx",
+        "mov ax, [bp+10]",
+        "xor dx, dx",
+        "div word [bp+8]",
+        "mov cl, dl",
+        "inc cl",
+        "xor dx, dx",
+        "div word [bp+6]",
+        "mov dh, dl",
+        "mov dl, [bp+4]",
+        "mov ch, al",
+        "ror ah, 1",
+        "ror ah, 1",
+        "and ah, 0xc0",
+        "or cl, ah",
+        "mov bx, [bp+12]",
+        "mov ax, 0x201",
+        "push bp",
+        "int 0x13",
+        "pop bp",
+        "jnc .ok",
+        "mov word [bp-2], 0",
+        "xor ax, ax",
+        "int 0x13",
+        "mov cx, [bp-4]",
+        "loop .loop",
+        ".ok:",
+
+    );
+    return ret;
+}
+
+halt()
+{
+    while(1) asm("hlt");
+}
+
+draw_error(msg, extra)
+{
+    auto error_msg[128 byte];
+    str_clean(error_msg, 128);
+    str_concat(error_msg, msg, 128);
+    if(extra)
+    {
+        str_concat(error_msg, ": ", 128);
+        str_concat(error_msg, extra, 128);
+    }
+    ui_draw_text(12, 20, 56, 1, error_msg, 4);
+}
+
+pfs_read_block(address, buffer)
+{
+    auto msg[128 byte];
+    if(disk_read(boot_get_arg0(), boot_get_arg1(), boot_get_arg2(), address, buffer) == 0)
+    {
+        str_clean(msg, 128);
+        str_concat(msg, "error: read error at disk #", 128);
+        str_concat_hex(msg, boot_get_arg0(), 128);
+        str_concat(msg, "(Heads: ", 128);
+        str_concat_uint(msg, boot_get_arg1(), 128);
+        str_concat(msg, " Sectors: ", 128);
+        str_concat_uint(msg, boot_get_arg2(), 128);
+        str_concat(msg, "):", 128);
+        str_concat_uint(msg, address, 128);
+        draw_error(msg, 0);
+        halt();
+    }
+}
+
+pfs_reload(block)
+{
+    pfs_read_block(block[250 word], block);
+}
+
+pfs_have_next(block)
+{
+    return block[251 word];
+}
+
+pfs_next(block)
+{
+    pfs_read_block(block[251 word], block);
+}
+
+pfs_have_data(block)
+{
+    return block[253 word];
+}
+
+pfs_data(block)
+{
+    pfs_read_block(block[253 word], block);
+}
+
+pfs_load_exec(fname)
+{
+    auto exec_seg, full_name = fname, name[64 bytes], item[512 bytes], found;
+    while(_dest_off != 0)
+    {
+        _dest_seg ++;
+        if(_dest_off > 16) _dest_off = _dest_off - 16;
+        else _dest_off = 0;
+    }
+    exec_seg = _dest_seg;
+
+    // Try read disk
+    pfs_read_block(0, item);
+    pfs_next(item);
+
+    // Find part
+    str_clean(name, 64);
+    while(1)
+    {
+        if(@fname == '/' || @fname == 0)
+        {
+            if(str_len(name, 64) > 0)
+            {
+                if(pfs_have_data(item) == 0) return 0;
+                pfs_data(item);
+                found = 0;
+                while(1)
+                {
+                    if(str_equal(item, name, 64))
+                    {
+                        found = 1;
+                        break;
+                    }
+                    if(pfs_have_next(item) == 0) return 0;
+                    pfs_next(item);
+                }
+                if(found == 0) return 0;
+            }
+            str_clean(name, 64);
+            if(@fname == 0) break;
+        }
+        else
+        {
+            str_concat_c(name, @fname, 64);
+        }
+        if(@fname == 0) break;
+        fname++;
+    }
+    if((item[32] & 01400) != 01400)
+    {
+        draw_error("File not readable", full_name);
+    }
+    pfs_data(item);
+    while(1)
+    {
+        far_write(_dest_seg, _dest_off, item, 500);
+        _dest_off = _dest_off + 500;
+        _dest_seg = _dest_seg + (_dest_off >> 4);
+        _dest_off = _dest_off & 15;
+        if(unsigned(_dest_seg >= mem_get_code_seg()))
+        {
+            draw_error("PANIC: Out of memory.", 0);
+            halt();
+        }
+        if(pfs_have_next(item) == 0) break;
+        pfs_next(item);
+    }
+    _dest_seg = exec_seg + ((*exec_seg:2) >> 4) + ((*exec_seg:4) >> 4)  + ((*exec_seg:6) >> 4) + 1;
+    _dest_off = 0;
+    return exec_seg;
+}
 
 main()
 {
-    tty_write_str("Pico System Loader\n");
+    auto txt[32 bytes], txt[128 byte];
+    tty_clean();
+    tty_hide_cursor();
+
+    ui_draw_frame(10, 3, 60, 19, "Pico System Software");
+
+    str_clean(txt, 128);
+    str_copy(txt, "Loading Kernel", 128);
+    ui_draw_text(12, 4, 56, 1, txt, 7);
+    _kernel_seg = pfs_load_exec("/System/Kernel");
+    if(_kernel_seg == 0)
+    {
+        str_concat(txt, " . [ FAIL ]", 128);
+        ui_draw_text(12, 5, 56, 1, txt, 7);
+        draw_error("Kernel not found.");
+        while(1) asm("hlt");
+    }
+    str_concat(txt, " . [ OK ]", 128);
+    ui_draw_text(12, 4, 56, 1, txt, 7);
+    str_clean(txt, 128);
+    str_copy(txt, "Loading Extensions", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    _kernel_cfg[0] = pfs_load_exec("/System/Extensions/0.kext");
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    _kernel_cfg[1] = pfs_load_exec("/System/Extensions/1.kext");
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    _kernel_cfg[2] = pfs_load_exec("/System/Extensions/2.kext");
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    _kernel_cfg[3] = pfs_load_exec("/System/Extensions/3.kext");
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    _kernel_cfg[4] = pfs_load_exec("/System/Extensions/4.kext");
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    _kernel_cfg[5] = pfs_load_exec("/System/Extensions/5.kext");
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    _kernel_cfg[6] = pfs_load_exec("/System/Extensions/6.kext");
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    _kernel_cfg[7] = pfs_load_exec("/System/Extensions/7.kext");
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    _kernel_cfg[8] = pfs_load_exec("/System/Extensions/8.kext");
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    _kernel_cfg[9] = pfs_load_exec("/System/Extensions/9.kext");
+    str_concat(txt, " . [ OK ]", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    str_clean(txt, 128);
+    str_copy(txt, "Loading User Interface", 128);
+    ui_draw_text(12, 6, 56, 1, txt, 7);
+    _kernel_cfg[10] = pfs_load_exec("/System/Init");
+    str_concat(txt, " . [ OK ]", 128);
+    ui_draw_text(12, 6, 56, 1, txt, 7);
+    ui_draw_text(12, 7, 56, 1, "Starting Kernel", 7);
+    _kernel_cfg[11] = 0;
+    _kernel_cfg[12] = 0;
+    _kernel_cfg[13] = 0;
+    _kernel_cfg[14] = 0;
+    _kernel_cfg[15] = 0;
+    _kernel_cfg[16] = boot_get_arg0();
+    _kernel_cfg[17] = boot_get_arg1();
+    _kernel_cfg[18] = boot_get_arg2();
+    _kernel_cfg[19] = _dest_seg;
+    //halt();
+    tty_clean();
+    asm
+    (
+        "mov ax, [__kernel_seg]",
+        "mov es, ax",
+        "inc ax",
+        "mov si, ax",
+        "es",
+        "mov dx, [10]",
+        "mov bx, [__kernel_cfg]",
+        "mov ax, ds",
+        "push si",
+        "push dx",
+        "xor cx, cx",
+        "retf"
+    );
 }
 

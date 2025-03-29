@@ -1,2 +1,37 @@
+// Common Teletype Console
 tty_write_c(c);
 tty_write_str(str);
+tty_write_uint(value);
+tty_write_sint(value);
+tty_write_hex(value);
+
+// Video Only TTY Console
+tty_set_position(x, y);
+tty_show_cursor();
+tty_hide_cursor();
+tty_clean();
+
+// UI
+ui_draw_c(x,y,c,attrib,count);
+ui_draw_text(left,top,width,height,text,attrib);
+ui_draw_frame(left,top,width,height,title);
+ui_draw_button(left,top,width,text,selected);
+
+// Far Handling
+far_write(seg, dst, src, size);
+far_read(dst, seg, src, size);
+
+// String Handling
+str_clean(str, size);
+str_len(str, size);
+str_copy(dst, src, size);
+str_concat(dst, src, size);
+str_concat_c(dst, c, size);
+str_concat_sint(dst, value, size);
+str_concat_uint(dst, value, size);
+str_concat_hex(dst, value, size);
+str_equal(s1, s2, size);
+
+// Memory Handling
+mem_get_code_seg();
+mem_get_data_seg();

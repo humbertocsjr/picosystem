@@ -1,0 +1,8 @@
+tty_write_hex(value)
+{
+    auto hex = "0123456789ABCDEF";
+    if(value >> 12) tty_write_c(hex[(value >> 12) & 15 byte]);
+    if(value >> 8) tty_write_c(hex[(value >> 8) & 15 byte]);
+    if(value >> 4) tty_write_c(hex[(value >> 4) & 15 byte]);
+    tty_write_c(hex[(value >> 0) & 15 byte]);
+}

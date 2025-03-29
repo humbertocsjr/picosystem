@@ -1,0 +1,11 @@
+
+ui_draw_c(x,y,c,attrib,count)
+{
+    auto pos = (y * 80 + x) << 1;
+    auto i;
+    for(i = 0; i < count; i++)
+    {
+        *0xb800:pos = c | (attrib << 8);
+        pos = pos + 2;
+    }
+}

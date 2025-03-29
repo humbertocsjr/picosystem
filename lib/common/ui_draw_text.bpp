@@ -1,0 +1,19 @@
+
+ui_draw_text(left,top,width,height,text,attrib)
+{
+    auto y, x;
+    for(y = 0; y < height; y++)
+    {
+        for(x = 0; x <= width; x++)
+        {
+            if(@text)
+            {
+                ui_draw_c(x + left, y + top, @text++, attrib, 1);
+            }
+            else
+            {
+                ui_draw_c(x + left, y + top, ' ', attrib, 1);
+            }
+        }
+    }
+}

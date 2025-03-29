@@ -1,0 +1,9 @@
+str_clean(str, size)
+{
+    auto i;
+    for(i = 0; i < size; i++)
+    {
+        str[i byte] = 0;
+    }
+    return str;
+}

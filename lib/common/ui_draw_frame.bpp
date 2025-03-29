@@ -1,0 +1,27 @@
+
+ui_draw_frame(left,top,width,height,title)
+{
+    auto y, x;
+    height--;
+    width--;
+    ui_draw_c(left, top, 0xda, 8, 1);
+    ui_draw_c(left + 1, top, 0xc4, 8, width - 1);
+    ui_draw_c(left + width, top, 0xbf, 8, 1);
+    ui_draw_c(left, top + height, 0xc0, 8, 1);
+    ui_draw_c(left + 1, top + height, 0xc4, 8, width - 1);
+    ui_draw_c(left + width, top + height, 0xd9, 8, 1);
+    for(y = 1 ; y < height; y++)
+    {
+        ui_draw_c(left, top + y, 0xb3, 8, 1);
+        ui_draw_c(left + 1, top + y, 0x20, 8, width - 1);
+        ui_draw_c(left + width, top + y, 0xb3, 8, 1);
+    }
+    for(x = 0; x < (width - 3); x++)
+    {
+        if(@title)
+        {
+            ui_draw_c(x+left + 2, top, @title++, 7, 1);
+        }
+        else break;
+    }
+}

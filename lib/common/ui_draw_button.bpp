@@ -1,0 +1,20 @@
+
+ui_draw_button(left,top,width,text,selected)
+{
+    auto x = (width - str_len(text, 4096)) >> 1;
+    auto color = 7;
+    if(selected) color = 15;
+    if(width == 0) return;
+    width--;
+    ui_draw_c(left, top, '<', 8, 1);
+    ui_draw_c(left + width, top, '>', 8, 1);
+    if(x > 0)
+    {
+        ui_draw_text(left+1, top, width-2, 1, "", color);
+        ui_draw_text(left+x, top, str_len(text, 4096), 1, text, color);
+    }
+    else
+    {
+        ui_draw_text(left+1, top, width-2, 1, text, color);
+    }
+}

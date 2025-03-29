@@ -1,0 +1,15 @@
+far_read(dst, seg, src, size)
+{
+    asm
+    (
+        "mov di, [bp+4]",
+        "mov ax, [bp+6]",
+        "mov si, [bp+8]",
+        "mov cx, [bp+10]",
+        "push ds",
+        "mov ds, ax",
+        "rep",
+        "movsb",
+        "pop ds",
+    );
+}

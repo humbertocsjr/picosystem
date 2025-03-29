@@ -7,7 +7,7 @@
 #pragma pack(1)
 
 #define streq(s1, s2) !strcmp(s1, s2)
-#define strneq(s1, s2, n) !strmcmp(s1, s2, n)
+#define strneq(s1, s2, n) !strncmp(s1, s2, n)
 
 #define PFS_SIGNATURE 0x8919
 #define PFS_NAME_SIZE 64
@@ -58,12 +58,12 @@ struct pfs_block
         uint8_t raw[500];
         pfs_inode_t inode;
     };
-    uint16_t block_number;
-    uint16_t next;
-    uint16_t parent;
-    uint16_t data;
-    uint16_t resources;
-    uint16_t configs;
+    uint16_t block_number; // 500
+    uint16_t next; // 502
+    uint16_t parent; // 504
+    uint16_t data; // 506
+    uint16_t resources; // 508
+    uint16_t configs; // 510
 };
 
 #pragma pack()

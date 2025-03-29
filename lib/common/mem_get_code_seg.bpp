@@ -1,0 +1,4 @@
+mem_get_code_seg()
+{
+    asm("mov ax, cs");
+}

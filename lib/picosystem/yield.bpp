@@ -1,0 +1,6 @@
+// see: docs/pico.md
+
+yield()
+{
+    asm("int 0x80");
+}

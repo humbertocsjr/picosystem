@@ -89,7 +89,6 @@ struct expr
         TOK_LE,
         TOK_GT,
         TOK_GE,
-        TOK_IF_INLINE,
         TOK_IF,
         TOK_ELSE,
         TOK_WHILE,
@@ -196,6 +195,15 @@ void cg_label(int lbl);
 void cg_set_acc_string(char *str);
 void cg_inc();
 void cg_dec();
+void cg_xor();
+void cg_or();
+void cg_and();
+void cg_shl();
+void cg_shr();
+void cg_load_far_byte();
+void cg_load_far_word();
+void cg_store_far_byte();
+void cg_store_far_word();
 
 void error(char *fmt, ...)
 {
@@ -618,6 +626,11 @@ void scan()
             _token->tok = TOK_GE;
             get_c();
         }
+        else if(_c == '>')
+        {
+            _token->tok = TOK_SHR;
+            get_c();
+        }
     }
     else if(_c == '<')
     {
@@ -626,6 +639,11 @@ void scan()
         if(_c == '=')
         {
             _token->tok = TOK_LE;
+            get_c();
+        }
+        else if(_c == '<')
+        {
+            _token->tok = TOK_SHL;
             get_c();
         }
     }
@@ -728,11 +746,6 @@ void scan()
         _token->tok = TOK_COLON;
         get_c();
     }
-    else if(_c == '?')
-    {
-        _token->tok = TOK_IF_INLINE;
-        get_c();
-    }
     else if(_c == ',')
     {
         _token->tok = TOK_COMMA;
@@ -788,6 +801,7 @@ char *text()
 }
 
 expr_t *expr();
+expr_t *expr_far();
 
 expr_t *expr_value()
 {
@@ -799,7 +813,22 @@ expr_t *expr_value()
         e = clone(_token);
         scan();
         e->tok = TOK_WORD_POINTER;
+        e->right = expr_far();
+        return e;
+    }
+    else if(is(TOK_SUB))
+    {
+        e = clone(_token);
+        scan();
+        e->left = clone(_token);
+        e->left->tok = TOK_INTEGER;
+        e->left->value = 0;
         e->right = expr_value();
+        return e;
+    }
+    else if(is(TOK_ADD))
+    {
+        e = expr_value();
         return e;
     }
     else if(is(TOK_AND))
@@ -814,7 +843,7 @@ expr_t *expr_value()
     {
         e = clone(_token);
         scan();
-        e->right = expr_value();
+        e->right = expr_far();
         return e;
     }
     else if(is(TOK_SYMBOL))
@@ -899,16 +928,31 @@ expr_t *expr_value()
     error("expression expected.");
 }
 
-expr_t *expr_shiftops()
+expr_t *expr_far()
 {
     expr_t *e = expr_value();
+    expr_t *op;
+    while(is(TOK_COLON))
+    {
+        op = clone(_token);
+        scan();
+        op->left = e;
+        op->right = expr_value();
+        e = op;
+    }
+    return e;
+}
+
+expr_t *expr_shiftops()
+{
+    expr_t *e = expr_far();
     expr_t *op;
     while(is(TOK_SHL) || is(TOK_SHR))
     {
         op = clone(_token);
         scan();
         op->left = e;
-        op->right = expr_value();
+        op->right = expr_far();
         e = op;
     }
     return e;
@@ -1124,6 +1168,42 @@ expr_t *optimize(expr_t *e, int is_unsigned)
 
 void parse_expr(expr_t *e, int is_unsigned);
 
+
+void parse_sub_expr(expr_t *e, int is_unsigned, int can_swap)
+{
+    sym_t *sym;
+    if(e->right->tok == TOK_SYMBOL && e->right->left == 0 && e->right->right == 0)
+    {
+        parse_expr(e->left, is_unsigned);
+        if((sym = find_local(e->right->text)) != 0)
+        {
+            cg_load_local_to_aux(sym->name, sym->offset);
+        }
+        else if((sym = find_global(e->right->text)) != 0)
+        {
+            cg_load_global_to_aux(sym->name);
+        }
+        else error_at(e, "variable not declared: %s", e->text);
+    }
+    else if(e->right->tok == TOK_INTEGER)
+    {
+        parse_expr(e->left, is_unsigned);
+        cg_set_aux(e->right->value);
+    }
+    else if(can_swap && e->left->tok == TOK_INTEGER)
+    {
+        parse_expr(e->right, is_unsigned);
+        cg_set_aux(e->left->value);
+    }
+    else
+    {
+        parse_expr(e->right, is_unsigned);
+        cg_push_acc();
+        parse_expr(e->left, is_unsigned);
+        cg_pop_aux();
+    }
+}
+
 void parse_write_expr(expr_t *e, int is_unsigned)
 {
     expr_t *index;
@@ -1132,16 +1212,34 @@ void parse_write_expr(expr_t *e, int is_unsigned)
     switch(e->tok)
     {
         case TOK_WORD_POINTER:
-            cg_push_acc();
-            parse_expr(e->right, 0);
-            cg_pop_aux();
-            cg_store_word();
+            if(e->right->tok == TOK_COLON)
+            {
+                cg_push_acc();
+                parse_sub_expr(e->right, 1, 0);
+                cg_store_far_word();
+            }
+            else
+            {
+                cg_push_acc();
+                parse_expr(e->right, 0);
+                cg_pop_aux();
+                cg_store_word();
+            }
             break;
         case TOK_BYTE_POINTER:
-            cg_push_acc();
-            parse_expr(e->right, 0);
-            cg_pop_aux();
-            cg_store_byte();
+            if(e->right->tok == TOK_COLON)
+            {
+                cg_push_acc();
+                parse_sub_expr(e->right, 1, 0);
+                cg_store_far_byte();
+            }
+            else
+            {
+                cg_push_acc();
+                parse_expr(e->right, 0);
+                cg_pop_aux();
+                cg_store_byte();
+            }
             break;
         case TOK_SYMBOL:
             if(e->left == 0 && e->right == 0)
@@ -1285,41 +1383,6 @@ void parse_addr_expr(expr_t *e, int is_unsigned)
     }
 }
 
-void parse_sub_expr(expr_t *e, int is_unsigned, int can_swap)
-{
-    sym_t *sym;
-    if(e->right->tok == TOK_SYMBOL && e->right->left == 0 && e->right->right == 0)
-    {
-        parse_expr(e->left, is_unsigned);
-        if((sym = find_local(e->right->text)) != 0)
-        {
-            cg_load_local_to_aux(sym->name, sym->offset);
-        }
-        else if((sym = find_global(e->right->text)) != 0)
-        {
-            cg_load_global_to_aux(sym->name);
-        }
-        else error_at(e, "variable not declared: %s", e->text);
-    }
-    else if(e->right->tok == TOK_INTEGER)
-    {
-        parse_expr(e->left, is_unsigned);
-        cg_set_aux(e->right->value);
-    }
-    else if(can_swap && e->left->tok == TOK_INTEGER)
-    {
-        parse_expr(e->right, is_unsigned);
-        cg_set_aux(e->left->value);
-    }
-    else
-    {
-        parse_expr(e->right, is_unsigned);
-        cg_push_acc();
-        parse_expr(e->left, is_unsigned);
-        cg_pop_aux();
-    }
-}
-
 void parse_expr(expr_t *e, int is_unsigned)
 {
     expr_t *index;
@@ -1347,12 +1410,28 @@ void parse_expr(expr_t *e, int is_unsigned)
             parse_addr_expr(e->right, 0);
             break;
         case TOK_WORD_POINTER:
-            parse_expr(e->right, 0);
-            cg_load_word();
+            if(e->right->tok == TOK_COLON)
+            {
+                parse_sub_expr(e->right, 1, 0);
+                cg_load_far_word();
+            }
+            else
+            {
+                parse_expr(e->right, 0);
+                cg_load_word();
+            }
             break;
         case TOK_BYTE_POINTER:
-            parse_expr(e->right, 0);
-            cg_load_byte();
+            if(e->right->tok == TOK_COLON)
+            {
+                parse_sub_expr(e->right, 1, 0);
+                cg_load_far_byte();
+            }
+            else
+            {
+                parse_expr(e->right, 0);
+                cg_load_byte();
+            }
             break;
         case TOK_INC:
             if(e->right)
@@ -1401,6 +1480,26 @@ void parse_expr(expr_t *e, int is_unsigned)
         case TOK_ATTRIB:
             parse_expr(optimize(e->right, is_unsigned), is_unsigned);
             parse_write_expr(e->left, is_unsigned);
+            break;
+        case TOK_AND:
+            parse_sub_expr(e, is_unsigned, 1);
+            cg_and();
+            break;
+        case TOK_XOR:
+            parse_sub_expr(e, is_unsigned, 1);
+            cg_xor();
+            break;
+        case TOK_OR:
+            parse_sub_expr(e, is_unsigned, 1);
+            cg_or();
+            break;
+        case TOK_SHL:
+            parse_sub_expr(e, is_unsigned, 1);
+            cg_shl();
+            break;
+        case TOK_SHR:
+            parse_sub_expr(e, is_unsigned, 1);
+            cg_shr();
             break;
         case TOK_ADD:
             parse_sub_expr(e, is_unsigned, 1);

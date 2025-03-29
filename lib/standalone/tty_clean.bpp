@@ -1,0 +1,13 @@
+tty_clean()
+{
+    asm
+    (
+        "mov ax, 0x600",
+        "mov bh, 7",
+        "xor cx, cx",
+        "mov dh, 24",
+        "mov dl, 79",
+        "int 0x10"
+    );
+    tty_set_position(0, 0);
+}

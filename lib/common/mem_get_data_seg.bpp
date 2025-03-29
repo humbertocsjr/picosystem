@@ -1,0 +1,4 @@
+mem_get_data_seg()
+{
+    asm("mov ax, ds");
+}

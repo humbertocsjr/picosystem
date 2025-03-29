@@ -1,3 +1,4 @@
+/test.s
 *.boot
 *.o
 *.sys
@@ -8,7 +9,8 @@
 *.a
 *.deb
 *.rpm
-devkit/bin32
-devkit/bin64
-devkit/i86-*
-devkit/picofs
+*.kext
+/devkit/bin32
+/devkit/bin64
+/devkit/i86-*
+/devkit/picofs

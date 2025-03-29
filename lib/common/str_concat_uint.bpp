@@ -1,0 +1,20 @@
+str_concat_uint(dst, value, size)
+{
+    auto txt[32], i = 0;
+    if(value == 0)
+    {
+        str_concat_c(dst, '0', size);
+    }
+    else
+    {
+        while(value)
+        {
+            txt[i++ byte] = value % 10 + '0';
+            value = value / 10;
+        }
+        while(i)
+        {
+            str_concat_c(dst, txt[--i byte], size);
+        }
+    }
+}

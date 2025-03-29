@@ -1,4 +1,4 @@
-OUT = stage2.sys stage1.boot
+OUT = stage2.app stage1.boot
 BPP = ../devkit/i86-bpp
 AS = ../devkit/i86-as
 LD = ../devkit/i86-ld
@@ -9,7 +9,7 @@ all: $(OUT)
 clean:
 	@rm -f $(OUT)
 
-%.s: ../include/stdlib.bpp %.bpp
+%.s: ../include/stdlib.bpp ../include/standalone.bpp %.bpp
 	@echo [BPP] $@
 	@$(BPP) $@ $^
 
@@ -21,9 +21,9 @@ clean:
 	@echo [AS] $@
 	@$(AS) -o $@ $<
 
-%.sys: %.o ../lib/libstandalone.a
+%.app: %.o ../lib/libstandalone.a Makefile
 	@echo [LD] $@
-	@$(LD) -f sys -o $@ -L ../lib -l libstandalone.a $<
+	@$(LD) -f picosystem -s 5120 -o $@ -L ../lib -l libstandalone.a $<
 
 %.boot: %.o
 	@echo [LD] $@

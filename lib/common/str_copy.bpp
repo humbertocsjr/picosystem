@@ -1,0 +1,11 @@
+str_copy(dst, src, size)
+{
+    auto i;
+    for(i = 0; i < size; i++)
+    {
+        dst[i byte] = src[i byte];
+        if(src[i byte] == 0) break;
+    }
+    dst[size - 1] = 0;
+    return dst;
+}

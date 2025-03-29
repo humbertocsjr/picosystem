@@ -1,10 +1,41 @@
+auto _params_ax, _params_bx, _params_cx;
+
 main();
 
 start()
 {
+    asm
+    (
+        "mov si, cs",
+        "add si, __segoff",
+        "mov ds, si",
+        "mov es, si",
+        "cli",
+        "mov ss, si",
+        "mov sp, __end",
+        "sti",
+        "mov [__params_ax], ax",
+        "mov [__params_bx], bx",
+        "mov [__params_cx], cx",
+    );
     main();
     while(1) 
     {
         asm("hlt");
     }
+}
+
+boot_get_arg0()
+{
+    return _params_ax;
+}
+
+boot_get_arg1()
+{
+    return _params_bx;
+}
+
+boot_get_arg2()
+{
+    return _params_cx;
 }

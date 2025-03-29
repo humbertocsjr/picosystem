@@ -1,0 +1,8 @@
+str_concat_hex(dst, value, size)
+{
+    auto hex = "0123456789ABCDEF";
+    if(value >> 12) str_concat_c(dst, hex[(value >> 12) & 15 byte], size);
+    if(value >> 8) str_concat_c(dst, hex[(value >> 8) & 15 byte], size);
+    if(value >> 4) str_concat_c(dst, hex[(value >> 4) & 15 byte], size);
+    str_concat_c(dst, hex[(value >> 0) & 15 byte], size);
+}
