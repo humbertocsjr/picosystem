@@ -22,33 +22,14 @@ clean:
 %.app: %.o ../lib/libpicosystem.a
 	@echo [LD] $@
 	@$(LD) -f picosystem -o $@ -L ../lib -l libpicosystem.a $<
-ifeq "$(wildcard $(KEXT0))" "$@" 
-	cp $@ 0.kext
-endif
-ifeq "$(wildcard $(KEXT1))" "$@"
-	cp $@ 1.kext
-endif
-ifeq "$(wildcard $(KEXT2))" "$@"
-	cp $@ 2.kext
-endif
-ifeq "$(wildcard $(KEXT3))" "$@"
-	cp $@ 3.kext
-endif
-ifeq "$(wildcard $(KEXT4))" "$@"
-	cp $@ 4.kext
-endif
-ifeq "$(wildcard $(KEXT5))" "$@"
-	cp $@ 5.kext
-endif
-ifeq "$(wildcard $(KEXT6))" "$@"
-	cp $@ 6.kext
-endif
-ifeq "$(wildcard $(KEXT7))" "$@"
-	cp $@ 7.kext
-endif
-ifeq "$(wildcard $(KEXT8))" "$@"
-	cp $@ 8.kext
-endif
-ifeq "$(wildcard $(KEXT9))" "$@"
-	cp $@ 9.kext
-endif
+	@if [[ "$(KEXT0)" == "$@" ]]; then cp $@ 0.kext; fi
+	@if [[ "$(KEXT1)" == "$@" ]]; then cp $@ 1.kext; fi
+	@if [[ "$(KEXT2)" == "$@" ]]; then cp $@ 2.kext; fi
+	@if [[ "$(KEXT3)" == "$@" ]]; then cp $@ 3.kext; fi
+	@if [[ "$(KEXT4)" == "$@" ]]; then cp $@ 4.kext; fi
+	@if [[ "$(KEXT5)" == "$@" ]]; then cp $@ 5.kext; fi
+	@if [[ "$(KEXT6)" == "$@" ]]; then cp $@ 6.kext; fi
+	@if [[ "$(KEXT7)" == "$@" ]]; then cp $@ 7.kext; fi
+	@if [[ "$(KEXT8)" == "$@" ]]; then cp $@ 8.kext; fi
+	@if [[ "$(KEXT9)" == "$@" ]]; then cp $@ 9.kext; fi
+
