@@ -26,6 +26,14 @@
 
 # Language Manual
 
+## Unsigned Math and Logic Marker
+
+```c
+// 16 bit words
+auto a = unsigned(0x4444 < 0xffff); // true
+auto b = 0x4444 < 0xffff; // false
+```
+
 ## Function Definition
 
 ```c
