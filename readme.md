@@ -43,7 +43,7 @@
 
 ## Run Pico System Software on Emulator
 
-- Install pre requisites from [SDK/B++](#sdk-prereqs)
+- Install [SDK/B++](#sdk-prereqs) prerequisites
 - Execute emulator
 ```sh
 make run
