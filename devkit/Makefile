@@ -11,5 +11,6 @@ all clean sdk:
 	$(MAKEDIR) bpp
 	$(MAKEDIR) ld
 	$(MAKEDIR) nm
+	$(MAKEDIR) obj
 	$(MAKEDIR) size
 	$(MAKEDIR) picofstool

@@ -14,6 +14,7 @@ tty_clean();
 // UI
 ui_draw_c(x,y,c,attrib,count);
 ui_draw_text(left,top,width,height,text,attrib);
+ui_conf_frame(left_top, top, right_top, left_botton, botton, right_botton, left, right);
 ui_draw_frame(left,top,width,height,title);
 ui_draw_button(left,top,width,text,selected);
 

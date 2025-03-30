@@ -1,0 +1,26 @@
+auto _console_height = 25, _console_width = 80;
+
+console_get_height()
+{
+    return _console_height;
+}
+
+console_init()
+{
+    asm
+    (
+        "push bp",
+        "mov ax, 0x1110",
+        "mov bx, 0x1000",
+        "mov cx, 256",
+        "mov dx, 0",
+        "mov bp, _font_default",
+        "int 0x10",
+        "mov ax, 0x1130",
+        "xor bx, bx",
+        "int 0x10",
+        "mov [__console_height], dl",
+        "pop bp"
+    );
+    ui_conf_frame(0xc0, 0xc1, 0xc2, 0xc5, 0xc1, 0xc6, 0xc7, 0xc7);
+}

@@ -1,0 +1,2 @@
+console_init();
+console_get_height();

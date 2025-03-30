@@ -1,20 +1,34 @@
+auto _left_top = 0xda, _top = 0xc4, _right_top = 0xbf, _left_botton = 0xc0, _botton = 0xc4, _right_botton = 0xd9, _left = 0xb3, _right = 0xb3;
+
+
+ui_conf_frame(left_top, top, right_top, left_botton, botton, right_botton, left, right)
+{
+    _left_top = left_top;
+    _top = top;
+    _right_top = right_top;
+    _left_botton = left_botton;
+    _botton = botton;
+    _right_botton = right_botton;
+    _left = left;
+    _right = right;
+}
 
 ui_draw_frame(left,top,width,height,title)
 {
     auto y, x;
     height--;
     width--;
-    ui_draw_c(left, top, 0xda, 8, 1);
-    ui_draw_c(left + 1, top, 0xc4, 8, width - 1);
-    ui_draw_c(left + width, top, 0xbf, 8, 1);
-    ui_draw_c(left, top + height, 0xc0, 8, 1);
-    ui_draw_c(left + 1, top + height, 0xc4, 8, width - 1);
-    ui_draw_c(left + width, top + height, 0xd9, 8, 1);
+    ui_draw_c(left, top, _left_top, 8, 1);
+    ui_draw_c(left + 1, top, _top, 8, width - 1);
+    ui_draw_c(left + width, top, _right_top, 8, 1);
+    ui_draw_c(left, top + height, _left_botton, 8, 1);
+    ui_draw_c(left + 1, top + height, _botton, 8, width - 1);
+    ui_draw_c(left + width, top + height, _right_botton, 8, 1);
     for(y = 1 ; y < height; y++)
     {
-        ui_draw_c(left, top + y, 0xb3, 8, 1);
+        ui_draw_c(left, top + y, _left, 8, 1);
         ui_draw_c(left + 1, top + y, 0x20, 8, width - 1);
-        ui_draw_c(left + width, top + y, 0xb3, 8, 1);
+        ui_draw_c(left + width, top + y, _right, 8, 1);
     }
     for(x = 0; x < (width - 3); x++)
     {
