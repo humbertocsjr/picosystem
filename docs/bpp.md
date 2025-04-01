@@ -87,7 +87,7 @@ struct OBJ_WTEST
 {
     WTEST_ID, // size: 2 bytes | offset: 0
     WTEST_NAME = 1, // size: 8 bytes | offset: 2
-    BTEST_GROUP_ID = 5 // size: 2 bytes | offset: 10
+    WTEST_GROUP_ID = 5 // size: 2 bytes | offset: 10
 }
 ```
 
