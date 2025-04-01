@@ -26,7 +26,7 @@ TUI Operating System for IBM PC or Compatible.
 
 ### Version History
 
-- 0.1 \
+- [Pico System v0.1](https://github.com/humbertocsjr/picosystem/releases/tag/picosystem-v0.1) \
     ![screenshot](v0_001.png)
     - Add Cothreads
     - Add System Font
