@@ -76,7 +76,7 @@ Usage:
 ```c
 get_user_id(user)
 {
-    return  ptr[BTEST_ID_LOW byte] | (ptr[BTEST_ID_HIGH byte] << 8);
+    return  user[BTEST_ID_LOW byte] | (user[BTEST_ID_HIGH byte] << 8);
 }
 ```
 
@@ -96,7 +96,7 @@ Usage:
 ```c
 get_user_id(user)
 {
-    return  ptr[WTEST_ID word];
+    return  user[WTEST_ID word];
 }
 ```
 
@@ -116,7 +116,7 @@ Usage:
 ```c
 get_user_id(user)
 {
-    return  *ptr:FTEST_ID;
+    return  *user:FTEST_ID;
 }
 ```
 
