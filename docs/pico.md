@@ -27,8 +27,11 @@ TUI Operating System for IBM PC or Compatible.
 ### Version History
 
 - 0.1 \
-    Add Cothreads and System Font
     ![screenshot](v0_001.png)
+    - Add Cothreads
+    - Add System Font
+    - Add Boot Loader Stage1/Stage2
+    - Add Minimal B++ Standard Library
 
 # Pico System ABI Specs
 
