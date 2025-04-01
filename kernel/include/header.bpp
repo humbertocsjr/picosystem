@@ -1,5 +1,5 @@
 const VERSION = 0;
-const REVISION = 1;
+const REVISION = 2;
 
 console_init();
 console_get_height();

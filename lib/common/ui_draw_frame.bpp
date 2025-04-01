@@ -1,7 +1,7 @@
-auto _left_top = 0xda, _top = 0xc4, _right_top = 0xbf, _left_botton = 0xc0, _botton = 0xc4, _right_botton = 0xd9, _left = 0xb3, _right = 0xb3;
+auto _left_top = 0xda, _top = 0xc4, _right_top = 0xbf, _left_botton = 0xc0, _botton = 0xc4, _right_botton = 0xd9, _left = 0xb3, _right = 0xb3, _title_left = 0xc4, _title_right = 0xc4;
 
 
-ui_conf_frame(left_top, top, right_top, left_botton, botton, right_botton, left, right)
+ui_conf_frame(left_top, top, right_top, left_botton, botton, right_botton, left, right, title_left, title_right)
 {
     _left_top = left_top;
     _top = top;
@@ -11,6 +11,8 @@ ui_conf_frame(left_top, top, right_top, left_botton, botton, right_botton, left,
     _right_botton = right_botton;
     _left = left;
     _right = right;
+    _title_left = title_left;
+    _title_right = title_right;
 }
 
 ui_draw_frame(left,top,width,height,title)
@@ -38,4 +40,6 @@ ui_draw_frame(left,top,width,height,title)
         }
         else break;
     }
+    ui_draw_c(left + 1, top, _title_left, 8, 1);
+    ui_draw_c(left + 2 + x, top, _title_right, 8, 1);
 }
