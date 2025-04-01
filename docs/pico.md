@@ -2,6 +2,16 @@
 
 TUI Operating System for IBM PC or Compatible.
 
+![screenshot](v0_001.png)
+
+
+### Pico System Font
+
+- 0x00-0x1f: Application use
+- 0x20-0xff: Common Font
+
+![character set](charmap.png)
+
 ### Minimum Reqs
 
 - PC or Compatible
@@ -13,6 +23,12 @@ TUI Operating System for IBM PC or Compatible.
 
 - Cooperative Multitask
 - Microkernel
+
+### Version History
+
+- 0.1 \
+    Add Cothreads and System Font
+    ![screenshot](v0_001.png)
 
 # Pico System ABI Specs
 

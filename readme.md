@@ -10,6 +10,8 @@
     - .zip: Windows
 - [B++ Language](docs/bpp.md) \
     Modernized B Language for RetroComputing Projects
+- [Pico System Font](docs/pico.md) \
+    ![character set](docs/charmap.png)
 
 ## How to generate Pico SDK/B++ Packages
 
