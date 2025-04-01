@@ -42,7 +42,12 @@ main()
     tty_hide_cursor();
     cfg_seg = boot_get_arg0();
     cfg_off = boot_get_arg1();
-    ui_draw_frame(10,1, 60, console_get_height() - 2, "Pico System Software");
+    str_clean(txt, 128);
+    str_concat(txt, "Pico System Software v", 128);
+    str_concat_uint(txt, VERSION, 128);
+    str_concat(txt, ".", 128);
+    str_concat_uint(txt, REVISION, 128);
+    ui_draw_frame(10,1, 60, console_get_height() - 2, txt);
     for(i = 0; i < 16; i ++)
     {
         // Load Module
