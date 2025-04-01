@@ -10,8 +10,10 @@ console_init()
     asm
     (
         "push bp",
+        "mov ax, 0x3",
+        "int 0x10",
         "mov ax, 0x1110",
-        "mov bx, 0x1000",
+        "mov bx, 0x0e00",
         "mov cx, 256",
         "mov dx, 0",
         "mov bp, _font_default",
@@ -19,6 +21,7 @@ console_init()
         "mov ax, 0x1130",
         "xor bx, bx",
         "int 0x10",
+        "inc dl",
         "mov [__console_height], dl",
         "pop bp"
     );

@@ -10,7 +10,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/devkit/i86-bpp",
-            "args": ["test.s","include/stdlib.bpp","include/standalone.bpp","boot/stage2.bpp"],
+            "args": ["test.s","include/stdlib.bpp","include/standalone.bpp","lib/common/str_concat_c.bpp"],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],

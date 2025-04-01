@@ -2,6 +2,13 @@
 
 TUI Operating System for IBM PC or Compatible.
 
+### Minimum Reqs
+
+- PC or Compatible
+- Floppy Drive
+- 192 KiB RAM
+- EGA Video Card or Compatible
+
 ### Features
 
 - Cooperative Multitask

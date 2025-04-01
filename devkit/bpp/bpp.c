@@ -108,7 +108,8 @@ struct expr
         TOK_ASM,
         TOK_BYTE_POINTER,
         TOK_WORD_POINTER,
-        TOK_ADDRESS_OF
+        TOK_ADDRESS_OF,
+        TOK_STRUCT
     } tok;
     int value;
     char text[1];
@@ -132,6 +133,7 @@ int _args = 0;
 int _vars = 0;
 sym_t *_globals = 0;
 sym_t *_locals = 0;
+sym_t *_consts = 0;
 
 void parse();
 
@@ -318,7 +320,9 @@ void free_tree(expr_t *e)
 {
     if(!e) return;
     if(e->left) free_tree(e->left);
+    e->left = 0;
     if(e->right) free_tree(e->right);
+    e->right = 0;
     free(e);
 }
 
@@ -360,6 +364,16 @@ sym_t *add_local(char *name, int offset)
     return sym;
 }
 
+sym_t *add_const(char *name, int value)
+{
+    sym_t *sym = alloc_obj(sizeof(sym_t));
+    sym->name = add_name(name);
+    sym->offset = value;
+    sym->next = _consts;
+    _consts = sym;
+    return sym;
+}
+
 void clear_locals()
 {
     sym_t *sym;
@@ -369,6 +383,17 @@ void clear_locals()
         free(_locals);
         _locals = sym;
     }
+}
+
+sym_t *find_const(char *name)
+{
+    sym_t *sym = _consts;
+    while(sym)
+    {
+        if(!strcmp(name, sym->name)) return sym;
+        sym = sym->next;
+    }
+    return 0;
 }
 
 sym_t *find_local(char *name)
@@ -574,6 +599,7 @@ void scan()
         else if(!strcmp(_token->text, "words")) _token->tok = TOK_WORD;
         else if(!strcmp(_token->text, "for")) _token->tok = TOK_FOR;
         else if(!strcmp(_token->text, "asm")) _token->tok = TOK_ASM;
+        else if(!strcmp(_token->text, "struct")) _token->tok = TOK_STRUCT;
         else _token->tok = TOK_SYMBOL;
         if(_token->tok != TOK_SYMBOL) strcpy(_token->text, "");
     }
@@ -846,6 +872,20 @@ expr_t *expr_value()
         e->right = expr_far();
         return e;
     }
+    else if(is(TOK_INTEGER) || is(TOK_STRING))
+    {
+        e = clone(_token);
+        scan();
+        return e;
+    }
+    else if(is(TOK_SYMBOL) && find_const(_token->text))
+    {
+        e = clone(_token);
+        e->tok = TOK_INTEGER;
+        e->value = find_const(_token->text)->offset;
+        scan();
+        return e;
+    }
     else if(is(TOK_SYMBOL))
     {
         e = clone(_token);
@@ -901,12 +941,6 @@ expr_t *expr_value()
             op->left = e;
             e = op;
         }
-        return e;
-    }
-    else if(is(TOK_INTEGER) || is(TOK_STRING))
-    {
-        e = clone(_token);
-        scan();
         return e;
     }
     else if(is(TOK_OPEN_PARAMS))
@@ -1098,6 +1132,8 @@ expr_t *optimize(expr_t *e, int is_unsigned)
         case TOK_INTEGER:
             return e;
         case TOK_ADD:
+            if(e->left) e->left = optimize(e->left, is_unsigned);
+            if(e->right) e->right = optimize(e->right, is_unsigned);
             if(e->left->tok == TOK_INTEGER && e->right->tok == TOK_INTEGER)
             {
                 e->value = e->left->value + e->right->value;
@@ -1105,6 +1141,8 @@ expr_t *optimize(expr_t *e, int is_unsigned)
             else return e;
             break;
         case TOK_SUB:
+            if(e->left) e->left = optimize(e->left, is_unsigned);
+            if(e->right) e->right = optimize(e->right, is_unsigned);
             if(e->left->tok == TOK_INTEGER && e->right->tok == TOK_INTEGER)
             {
                 e->value = e->left->value - e->right->value;
@@ -1112,6 +1150,8 @@ expr_t *optimize(expr_t *e, int is_unsigned)
             else return e;
             break;
         case TOK_MUL:
+            if(e->left) e->left = optimize(e->left, is_unsigned);
+            if(e->right) e->right = optimize(e->right, is_unsigned);
             if(e->left->tok == TOK_INTEGER && e->right->tok == TOK_INTEGER)
             {
                 if(is_unsigned)
@@ -1126,6 +1166,8 @@ expr_t *optimize(expr_t *e, int is_unsigned)
             else return e;
             break;
         case TOK_DIV:
+            if(e->left) e->left = optimize(e->left, is_unsigned);
+            if(e->right) e->right = optimize(e->right, is_unsigned);
             if(e->left->tok == TOK_INTEGER && e->right->tok == TOK_INTEGER)
             {
                 if(is_unsigned)
@@ -1140,6 +1182,8 @@ expr_t *optimize(expr_t *e, int is_unsigned)
             else return e;
             break;
         case TOK_MOD:
+            if(e->left) e->left = optimize(e->left, is_unsigned);
+            if(e->right) e->right = optimize(e->right, is_unsigned);
             if(e->left->tok == TOK_INTEGER && e->right->tok == TOK_INTEGER)
             {
                 if(is_unsigned)
@@ -1252,7 +1296,7 @@ void parse_write_expr(expr_t *e, int is_unsigned)
                 {
                     cg_store_global(sym->name);
                 }
-                else error_at(e, "invalid expression #4 (#%d %s)", e->tok, e->text);
+                else error_at(e, "variable or function not declared: %s", e->text);
             }
             else if(e->left != 0 && e->right == 0)
             {
@@ -1265,7 +1309,7 @@ void parse_write_expr(expr_t *e, int is_unsigned)
                 {
                     cg_load_global(sym->name);
                 }
-                else error_at(e, "invalid expression #4 (#%d %s)", e->tok, e->text);
+                else error_at(e, "variable or function not declared: %s", e->text);;
                 index = e->left;
                 while(index)
                 {
@@ -1332,7 +1376,7 @@ void parse_addr_expr(expr_t *e, int is_unsigned)
                 {
                     cg_addr_global(sym->name);
                 }
-                else error_at(e, "invalid expression #4 (#%d %s)", e->tok, e->text);
+                else error_at(e, "variable or function not declared: %s", e->text);
             }
             else if(e->left != 0 && e->right == 0)
             {
@@ -1612,7 +1656,7 @@ void parse_expr(expr_t *e, int is_unsigned)
                 {
                     cg_load_global(sym->name);
                 }
-                else error_at(e, "invalid expression");
+                else error_at(e, "variable or function not declared: %s", e->text);
                 index = e->left;
                 while(index)
                 {
@@ -1675,9 +1719,9 @@ void parse_expr(expr_t *e, int is_unsigned)
                     cg_restore_stack(size);
                     comment("END CALL");
                 }
-                else error_at(e, "invalid expression");
+                else error_at(e, "variable or function not declared: %s", e->text);
             }
-            else error_at(e, "invalid expression #3");
+            else error_at(e, "invalid expression");
             break;
         default:
             error_at(e, "invalid expression [#%d]", e->tok);
@@ -1707,7 +1751,7 @@ void parse_auto()
         if(is(TOK_OPEN_INDEX) && e == 0)
         {
             scan();
-            e = expr();
+            e = optimize(expr(), 1);
             if(e->tok != TOK_INTEGER) error("constant expression expected.");
             if(is(TOK_BYTE))
             {
@@ -2021,6 +2065,55 @@ void parse_break()
     error("'break' without loop");
 }
 
+void parse_const()
+{
+    char *name;
+    expr_t *e;
+    scan();
+    while(!is(TOK_EOF) && !is(TOK_SEMI))
+    {
+        name = add_name(text());
+        match(is(TOK_SYMBOL), "name");
+        match(is(TOK_ATTRIB), "'='");
+        e = optimize(expr(), 0);
+        if(e->tok != TOK_INTEGER) error_at(e, "constant integer expression");
+        add_const(name, e->value);
+        free_tree(e);
+        if(!is(TOK_COMMA)) break;
+        scan();
+    }
+}
+
+void parse_struct()
+{
+    char *name;
+    char *field;
+    uint16_t last = 0;
+    expr_t *e;
+    scan();
+    name = add_name(text());
+    match(is(TOK_SYMBOL), "name");
+    match(is(TOK_OPEN_BLOCK), "'{'");
+    while(!is(TOK_EOF) && !is(TOK_CLOSE_BLOCK))
+    {
+        field = add_name(text());
+        match(is(TOK_SYMBOL), "field");
+        if(is(TOK_ATTRIB))
+        {
+            match(is(TOK_ATTRIB), "'='");
+            e = optimize(expr(), 0);
+            if(e->tok != TOK_INTEGER) error_at(e, "constant integer expression");
+            last = e->value;
+            free_tree(e);
+        }
+        add_const(field, last++);
+        if(!is(TOK_COMMA)) break;
+        scan();
+    }
+    match(is(TOK_CLOSE_BLOCK), "'|'");
+    add_const(name, last);
+}
+
 void parse()
 {
     expr_t *e;
@@ -2070,6 +2163,15 @@ void parse()
     else if(is(TOK_BREAK))
     {
         parse_break();
+    }
+    else if(is(TOK_CONST))
+    {
+        parse_const();
+    }
+    else if(is(TOK_STRUCT))
+    {
+        parse_struct();
+        return;
     }
     else if(is(TOK_SYMBOL) || is(TOK_INC) || is(TOK_DEC) || is(TOK_WORD_POINTER) || is(TOK_BYTE_POINTER) || is(TOK_MUL))
     {

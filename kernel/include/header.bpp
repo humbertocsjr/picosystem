@@ -1,2 +1,8 @@
 console_init();
 console_get_height();
+console_get_width();
+
+cothread_init();
+yield();
+cothread_new(code_seg, code_off, data_seg, data_off);
+proc_exec(aout_seg);

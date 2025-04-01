@@ -1,12 +1,15 @@
+yield();
 main();
 
 start()
 {
     main();
+    // Temporary
+    while(1) yield();
     asm
     (
         "mov bx, ax",
         "mov ax, 0x1",
-        "int 0x80"
+        "int 0x81"
     );
 }

@@ -1,12 +1,48 @@
+struct OBJ_FCFG
+{
+    FCFG_KEXTS,
+    FCFG_DISK_ID = 32,
+    FCFG_DISK_HEADS = 34,
+    FCFG_DISK_SECTS = 36,
+    FCFG_LAST_USED_SEG = 38
+}
+
+auto _count = 0;
+
+test_thread()
+{
+    while(1) 
+    {
+        tty_set_position(0, 0);
+        tty_write_hex(_count++);
+        yield();
+    }
+        
+}
+auto test_stack[512 byte];
+
+test2_thread()
+{
+    while(1) 
+    {
+        tty_set_position(20, 0);
+        tty_write_hex(_count++);
+        yield();
+    }
+        
+}
+auto test2_stack[512 byte];
+
 main()
 {
     auto i, j, cfg_seg, cfg_off, module_seg, txt[128 bytes];
     console_init();
+    cothread_init();
     tty_clean();
     tty_hide_cursor();
     cfg_seg = boot_get_arg0();
     cfg_off = boot_get_arg1();
-    ui_draw_frame(10,1, 60, console_get_height() - 1, "Pico System Software");
+    ui_draw_frame(10,1, 60, console_get_height() - 2, "Pico System Software");
     for(i = 0; i < 16; i ++)
     {
         // Load Module
@@ -18,6 +54,23 @@ main()
             str_concat_hex(txt, module_seg, 128);
             str_concat(txt, "0", 128);
             ui_draw_text(12, 2+j++, 56, 1, txt, 7);
+            proc_exec(module_seg);
         }
+    }
+    str_clean(txt, 128);
+    str_concat(txt, "Memory in use: ", 128);
+    str_concat_uint(txt, unsigned((*cfg_seg:(cfg_off + FCFG_LAST_USED_SEG) + 63) >> 6), 128);
+    str_concat(txt, " KiB", 128);
+    ui_draw_text(12, 2+j++, 56, 1, txt, 7);
+    cothread_new(mem_get_code_seg(), &test_thread, mem_get_data_seg(), &test_stack[512 bytes]);
+    cothread_new(mem_get_code_seg(), &test2_thread, mem_get_data_seg(), &test2_stack[512 bytes]);
+    tty_set_position(70, 0);
+    tty_write_uint(console_get_height());
+    while(1)
+    {
+        yield();
+        asm("hlt");
+        tty_set_position(40, 0);
+        tty_write_hex(_count++);
     }
 }

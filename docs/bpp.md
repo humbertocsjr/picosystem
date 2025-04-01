@@ -51,6 +51,75 @@ main()
 external_function();
 ```
 
+## Constant Declaration
+
+```c
+const CONST_TEST = 1;
+```
+
+## Structure Declaration
+
+#### Byte Pointer Struct:
+
+```c
+struct OBJ_BTEST
+{
+    BTEST_ID_LOW, // size: 1 byte | offset: 0
+    BTEST_ID_HIGH, // size: 1 byte | offset: 1
+    BTEST_NAME, // size: 8 bytes | offset: 2
+    BTEST_GROUP_ID = 10 // size: 1 | offset: 10
+}
+```
+
+Usage:
+
+```c
+get_user_id(user)
+{
+    return  ptr[BTEST_ID_LOW byte] | (ptr[BTEST_ID_HIGH byte] << 8);
+}
+```
+
+#### Word Pointer Struct:
+
+```c
+struct OBJ_WTEST
+{
+    WTEST_ID, // size: 2 bytes | offset: 0
+    WTEST_NAME = 1, // size: 8 bytes | offset: 2
+    BTEST_GROUP_ID = 5 // size: 2 bytes | offset: 10
+}
+```
+
+Usage:
+
+```c
+get_user_id(user)
+{
+    return  ptr[WTEST_ID word];
+}
+```
+
+#### Far Pointer Struct:
+
+```c
+struct OBJ_FTEST
+{
+    FTEST_ID, // size: 2 bytes | offset: 0
+    FTEST_NAME = 2, // size: 8 bytes | offset: 2
+    BTEST_GROUP_ID = 10 // size: 2 bytes | offset: 10
+}
+```
+
+Usage:
+
+```c
+get_user_id(user)
+{
+    return  *ptr:FTEST_ID;
+}
+```
+
 ## Variable Declaration
 
 ```c
