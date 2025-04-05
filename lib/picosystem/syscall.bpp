@@ -1,0 +1,13 @@
+
+syscall(cmd, arg0, arg1, arg2, arg3)
+{
+    asm
+    (
+        "mov ax, [bp+4]",
+        "mov bx, [bp+6]",
+        "mov cx, [bp+8]",
+        "mov dx, [bp+10]",
+        "mov si, [bp+12]",
+        "int 0x81"
+    );
+}

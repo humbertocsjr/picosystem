@@ -1,0 +1,33 @@
+auto _left_top = 0xda, _top = 0xc4, _right_top = 0xbf, _left_botton = 0xc0, _botton = 0xc4, _right_botton = 0xd9, _left = 0xb3, _right = 0xb3;
+
+
+ui_conf_panel(left_top, top, right_top, left_botton, botton, right_botton, left, right)
+{
+    _left_top = left_top;
+    _top = top;
+    _right_top = right_top;
+    _left_botton = left_botton;
+    _botton = botton;
+    _right_botton = right_botton;
+    _left = left;
+    _right = right;
+}
+
+ui_draw_panel(left,top,width,height,color)
+{
+    auto y, x;
+    height--;
+    width--;
+    ui_draw_c(left, top, _left_top, color, 1);
+    ui_draw_c(left + 1, top, _top, color, width - 1);
+    ui_draw_c(left + width, top, _right_top, color, 1);
+    ui_draw_c(left, top + height, _left_botton, color, 1);
+    ui_draw_c(left + 1, top + height, _botton, color, width - 1);
+    ui_draw_c(left + width, top + height, _right_botton, color, 1);
+    for(y = 1 ; y < height; y++)
+    {
+        ui_draw_c(left, top + y, _left, color, 1);
+        ui_draw_c(left + 1, top + y, 0x20, color, width - 1);
+        ui_draw_c(left + width, top + y, _right, color, 1);
+    }
+}

@@ -1,19 +1,23 @@
 
-struct OBJ_COTHREAD
+struct OBJ_WCOTHREAD
 {
-    COTHREAD_ID,
-    COTHREAD_STACK_SEG,
-    COTHREAD_STACK_OFF,
-    COTHREAD_NEXT,
-    COTHREAD_IPC_DONE,
-    COTHREAD_IPC_VALUE,
-    COTHREAD_IPC_SEG,
-    COTHREAD_IPC_OFF
+    WCOTHREAD_ID,
+    WCOTHREAD_STACK_SEG,
+    WCOTHREAD_STACK_OFF,
+    WCOTHREAD_NEXT,
+    WCOTHREAD_IN_USE,
+    WCOTHREAD_RESULT,
+    WCOTHREAD_IPC_DONE,
+    WCOTHREAD_IPC_FROM,
+    WCOTHREAD_IPC_VALUE,
+    WCOTHREAD_IPC_SEG,
+    WCOTHREAD_IPC_OFF,
+    WCOTHREAD_IPC_SIZE
 }
 
-const MAX_COTHREADS = 128;
+const MAX_WCOTHREADS = 128;
 
-auto _cothreads[MAX_COTHREADS], _cothreads_raw[OBJ_COTHREAD * MAX_COTHREADS];
+auto _cothreads[MAX_WCOTHREADS], _cothreads_raw[OBJ_WCOTHREAD * MAX_WCOTHREADS];
 auto _current = 0;
 
 yield()
@@ -21,29 +25,110 @@ yield()
     asm("int 0x80");
 }
 
+exit(result)
+{
+    auto ptr = _current;
+    while(ptr[WCOTHREAD_NEXT] != _current)
+    {
+        ptr = ptr[WCOTHREAD_NEXT];
+    }
+    ptr[WCOTHREAD_NEXT] = _current[WCOTHREAD_NEXT];
+    _current[WCOTHREAD_IN_USE] = 0;
+    _current[WCOTHREAD_RESULT] = result;
+    while(1) yield();
+}
+
 proc_exec(aout_seg)
 {
     auto code_seg = aout_seg + 1;
     auto code_off = *aout_seg:10;
-    auto data_seg = aout_seg + 1 + (*aout_seg:2 >> 4);
+    auto data_seg = code_seg + *(aout_seg:12);
     auto data_off = *aout_seg:4 + *aout_seg:6;
     return cothread_new(code_seg, code_off, data_seg, data_off);
+}
+
+ipc_send(from, to, value, data_seg, data_off, data_size)
+{
+    if(to < 0 || to >= MAX_WCOTHREADS) return 0;
+    if(from < 0 || from >= MAX_WCOTHREADS) return 0;
+    from = _cothreads[from];
+    to = _cothreads[to];
+    if(to[WCOTHREAD_IN_USE] == 0) return 0;
+    if(to[WCOTHREAD_IPC_DONE] != 0) return 0;
+    to[WCOTHREAD_IPC_FROM] = from[WCOTHREAD_ID];
+    to[WCOTHREAD_IPC_SEG] = data_seg;
+    to[WCOTHREAD_IPC_OFF] = data_off;
+    to[WCOTHREAD_IPC_SIZE] = data_size;
+    to[WCOTHREAD_IPC_VALUE] = value;
+    to[WCOTHREAD_IPC_DONE] = 1;
+    return 1;
+}
+
+ipc_can_send(to)
+{
+    if(to < 0 || to >= MAX_WCOTHREADS) return 0;
+    to = _cothreads[to];
+    if(to[WCOTHREAD_IN_USE] == 0) return 0;
+    return (to[WCOTHREAD_IPC_DONE] != 0);
+}
+
+ipc_can_receive()
+{
+    return _current[WCOTHREAD_IPC_DONE];
+}
+
+ipc_get_value()
+{
+    return _current[WCOTHREAD_IPC_VALUE];
+}
+
+ipc_get_size()
+{
+    return _current[WCOTHREAD_IPC_SIZE];
+}
+
+ipc_get_contents(data_seg, data_off, data_size)
+{
+    auto from_seg = _current[WCOTHREAD_IPC_SEG];
+    auto from_off = _current[WCOTHREAD_IPC_OFF];
+    if(data_size > _current[WCOTHREAD_IPC_SIZE]) data_size = _current[WCOTHREAD_IPC_SIZE];
+    asm
+    (
+        "mov cx, [bp+8]",
+        "push ds",
+        "push es",
+        "mov ax, [bp-2]",
+        "mov si, [bp-4]",
+        "mov bx, [bp+4]",
+        "mov di, [bp+6]",
+        "mov es, bx",
+        "mov ds, ax",
+        "rep",
+        "movsb",
+        "pop es",
+        "pop ds"
+    );
+    return data_size;
 }
 
 cothread_new(code_seg, code_off, data_seg, data_off)
 {
     auto ptr;
     auto i, found = 0;
-    for(i = 0; i < MAX_COTHREADS; i++)
+    for(i = 0; i < MAX_WCOTHREADS; i++)
     {
         ptr = _cothreads[i];
-        if(ptr[COTHREAD_STACK_SEG] == 0)
+        if(ptr[WCOTHREAD_IN_USE] == 0)
         {
             found = 1;
             break;
         }
     }
-    if(found == 0) return 0;
+    if(found == 0)
+    {
+        return 0;
+    }
+    ptr[WCOTHREAD_IN_USE] = 1; 
     asm
     (
         "cli",
@@ -83,9 +168,9 @@ cothread_new(code_seg, code_off, data_seg, data_off)
         "_new_sp: dw 0",
         "section .text"
     );
-    ptr[COTHREAD_NEXT] = _current[COTHREAD_NEXT];
-    _current[COTHREAD_NEXT] = ptr;
-    return ptr[COTHREAD_ID];
+    ptr[WCOTHREAD_NEXT] = _current[WCOTHREAD_NEXT];
+    _current[WCOTHREAD_NEXT] = ptr;
+    return ptr[WCOTHREAD_ID];
 }
 
 cothread_yield()
@@ -141,16 +226,18 @@ cothread_yield()
 cothread_init()
 {
     auto i;
-    for(i = 0; i < MAX_COTHREADS; i++)
+    for(i = 0; i < MAX_WCOTHREADS; i++)
     {
-        _cothreads[i] = &_cothreads_raw[i * OBJ_COTHREAD];
-        _cothreads[i][COTHREAD_ID] = i;
-        _cothreads[i][COTHREAD_STACK_SEG] = 0;
-        _cothreads[i][COTHREAD_STACK_OFF] = 0;
-        _cothreads[i][COTHREAD_NEXT] = _cothreads[i];
+        _cothreads[i] = &_cothreads_raw[i * OBJ_WCOTHREAD];
+        _cothreads[i][WCOTHREAD_ID] = i;
+        _cothreads[i][WCOTHREAD_STACK_SEG] = 0;
+        _cothreads[i][WCOTHREAD_STACK_OFF] = 0;
+        _cothreads[i][WCOTHREAD_NEXT] = _cothreads[i];
+        _cothreads[i][WCOTHREAD_IN_USE] = 0;
     }
     _current = _cothreads[0];
-    _current[COTHREAD_STACK_SEG] = mem_get_data_seg();
+    _current[WCOTHREAD_STACK_SEG] = mem_get_data_seg();
+    _current[WCOTHREAD_IN_USE] = 1;
     *0x0000:(0x80 * 4) = &cothread_yield;
     *0x0000:(0x80 * 4 + 2) = mem_get_code_seg();
 }

@@ -1,0 +1,76 @@
+auto _syscall_ss, _syscall_sp, _syscall_command, _syscall_arg0, _syscall_arg1, _syscall_arg2, _syscall_arg3;
+
+syscall(cmd, arg0, arg1, arg2, arg3)
+{
+    asm
+    (
+        "mov ax, [bp+4]",
+        "mov bx, [bp+6]",
+        "mov cx, [bp+8]",
+        "mov dx, [bp+10]",
+        "mov si, [bp+12]",
+        "int 0x81"
+    );
+}
+
+syscall_handler()
+{
+    asm("xor bx, bx");
+    switch(_syscall_command)
+    {
+        case(0):
+            asm("xor bx, bx");
+            exit(_syscall_arg0);
+            return 0;
+        case(1):
+            asm("xor bx, bx");
+            return cothread_new(_syscall_arg0, _syscall_arg1, _syscall_arg2, _syscall_arg3);
+        default:
+            asm("xor bx, bx");
+            return 0;
+    }
+    asm("xor bx, bx");
+}
+
+_syscall()
+{
+    asm
+    (
+        "push ds",
+        "push es",
+        "mov di, cs",
+        "add di, __segoff",
+        "mov ds, di",
+        "mov es, di",
+        "mov [__syscall_ss], ss",
+        "mov [__syscall_sp], sp",
+        "mov [__syscall_command], ax",
+        "mov [__syscall_arg0], bx",
+        "mov [__syscall_arg1], cx",
+        "mov [__syscall_arg2], dx",
+        "mov [__syscall_arg3], si",
+        "cli",
+        "mov ss, di",
+        "mov sp, syscall_stack_top",
+        "call _syscall_handler",
+        "sti",
+        "cli",
+        "mov ss, [__syscall_ss]",
+        "mov sp, [__syscall_sp]",
+        "sti",
+        "pop es",
+        "pop ds",
+        "pop bp",
+        "iret",
+        "section .bss",
+        "resb 2048",
+        "syscall_stack_top:",
+        "section .text"
+    );
+}
+
+syscalls_init()
+{
+    *0:(0x81 * 4) = &_syscall;
+    *0:(0x81 * 4 + 2) = mem_get_code_seg();
+}

@@ -3,13 +3,6 @@ main();
 
 start()
 {
-    main();
-    // Temporary
-    while(1) yield();
-    asm
-    (
-        "mov bx, ax",
-        "mov ax, 0x1",
-        "int 0x81"
-    );
+    //asm("xchg bx,bx");
+    exit(main());
 }

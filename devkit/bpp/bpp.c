@@ -21,7 +21,8 @@ struct level
         LEVEL_ROOT,
         LEVEL_FUNCTION,
         LEVEL_IF,
-        LEVEL_LOOP
+        LEVEL_LOOP,
+        LEVEL_SWITCH
     } type;
     int lbl_continue;
     int lbl_break;
@@ -109,7 +110,10 @@ struct expr
         TOK_BYTE_POINTER,
         TOK_WORD_POINTER,
         TOK_ADDRESS_OF,
-        TOK_STRUCT
+        TOK_STRUCT,
+        TOK_SWITCH,
+        TOK_CASE,
+        TOK_DEFAULT
     } tok;
     int value;
     char text[1];
@@ -206,6 +210,8 @@ void cg_load_far_byte();
 void cg_load_far_word();
 void cg_store_far_byte();
 void cg_store_far_word();
+void cg_case_jump(int true_lbl);
+void cg_case_do(int true_lbl, int false_lbl);
 
 void error(char *fmt, ...)
 {
@@ -600,6 +606,9 @@ void scan()
         else if(!strcmp(_token->text, "for")) _token->tok = TOK_FOR;
         else if(!strcmp(_token->text, "asm")) _token->tok = TOK_ASM;
         else if(!strcmp(_token->text, "struct")) _token->tok = TOK_STRUCT;
+        else if(!strcmp(_token->text, "switch")) _token->tok = TOK_SWITCH;
+        else if(!strcmp(_token->text, "case")) _token->tok = TOK_CASE;
+        else if(!strcmp(_token->text, "default")) _token->tok = TOK_DEFAULT;
         else _token->tok = TOK_SYMBOL;
         if(_token->tok != TOK_SYMBOL) strcpy(_token->text, "");
     }
@@ -2114,6 +2123,68 @@ void parse_struct()
     add_const(name, last);
 }
 
+void parse_switch()
+{
+    expr_t *e;
+    new_level(LEVEL_SWITCH, new_label(), new_label(), 0, 0);
+    scan();
+    match(is(TOK_OPEN_PARAMS), "'('");
+    e = optimize(expr(), 0);
+    match(is(TOK_CLOSE_PARAMS), "')'");
+    parse_expr(e, 0);
+    free_tree(e);
+    cg_jump(_levels->lbl_continue);
+    parse();
+    cg_label(_levels->lbl_continue);
+    cg_label(_levels->lbl_break);
+    rem_level(LEVEL_SWITCH);
+}
+
+void parse_case()
+{
+    expr_t *e;
+    int lbl = new_label();
+    level_t *lvl = _levels;
+    while(lvl && lvl->type != LEVEL_SWITCH)
+    {
+        lvl = lvl->prev;
+    }
+    if(lvl == 0) error("'case' without 'switch'");
+    cg_jump(lbl);
+    while(is(TOK_CASE))
+    {
+        scan();
+        match(is(TOK_OPEN_PARAMS), "'('");
+        e = optimize(expr(), 0);
+        match(is(TOK_CLOSE_PARAMS), "')'");
+        match(is(TOK_COLON), "':'");
+        cg_label(lvl->lbl_continue);
+        lvl->lbl_continue = new_label();
+        cg_push_acc();
+        parse_expr(e, 0);
+        cg_pop_aux();
+        cg_case_jump(lbl);
+        free_tree(e);
+    }
+    cg_case_do(lbl, lvl->lbl_continue);
+}
+
+void parse_default()
+{
+    expr_t *e;
+    int lbl = new_label();
+    level_t *lvl = _levels;
+    while(lvl && lvl->type != LEVEL_SWITCH)
+    {
+        lvl = lvl->prev;
+    }
+    if(lvl == 0) error("'default' without 'switch'");
+    scan();
+    cg_label(lvl->lbl_continue);
+    lvl->lbl_continue = new_label();
+    match(is(TOK_COLON), "':'");
+}
+
 void parse()
 {
     expr_t *e;
@@ -2171,6 +2242,21 @@ void parse()
     else if(is(TOK_STRUCT))
     {
         parse_struct();
+        return;
+    }
+    else if(is(TOK_SWITCH))
+    {
+        parse_switch();
+        return;
+    }
+    else if(is(TOK_CASE))
+    {
+        parse_case();
+        return;
+    }
+    else if(is(TOK_DEFAULT))
+    {
+        parse_default();
         return;
     }
     else if(is(TOK_SYMBOL) || is(TOK_INC) || is(TOK_DEC) || is(TOK_WORD_POINTER) || is(TOK_BYTE_POINTER) || is(TOK_MUL))

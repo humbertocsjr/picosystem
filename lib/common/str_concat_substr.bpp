@@ -1,0 +1,31 @@
+str_concat_substr(dst, src, size, src_offset, src_len)
+{
+    auto i, j = 0, copy = 0, ok = 1;
+    for(i = 0; i < (src_offset + src_len); i++)
+    {
+        if(src[i byte] == 0)
+        {
+            if(src_offset > i) ok = 0;
+            break;
+        }
+    }
+    tty_set_position(20,0);
+    tty_write_str("!");
+    if(ok == 0) return dst;
+    tty_write_str(&src[src_offset byte]);
+    tty_write_str("!");
+    for(i = 0; i < size && j < src_len; i++)
+    {
+        if(dst[i byte] == 0)
+        {
+            copy = 1;
+        }
+        if(copy)
+        {
+            dst[i byte] = src[src_offset + j++ byte];
+            if(src[src_offset + j byte] == 0) break;
+        }
+    }
+    dst[size - 1] = 0;
+    return dst;
+}

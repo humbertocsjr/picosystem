@@ -1,0 +1,28 @@
+struct OBJ_WVOL
+{
+    WVOL_NAME,
+    WVOL_ID = 32,
+    WVOL_INTERNAL_ID,
+    WVOL_DISK_THREAD,
+    WVOL_FS_THREAD
+};
+
+const SIZE_NAME = 64;
+const MAX_WVOL = 10;
+
+auto _vols[MAX_WVOL], _vols_data[MAX_WVOL * OBJ_WVOL];
+
+volumes_init()
+{
+    auto i, vol;
+    for(i = 0; i < MAX_WVOL; i++)
+    {
+        _vols[i] = &_vols_data[i * OBJ_WVOL];
+        vol = _vols[i];
+        vol[WVOL_ID] = i;
+        str_clean(&vol[WVOL_NAME], SIZE_NAME);
+        vol[WVOL_DISK_THREAD] = 0;
+        vol[WVOL_FS_THREAD] = 0;
+        vol[WVOL_INTERNAL_ID] = 0;
+    }
+}

@@ -24,13 +24,31 @@ int main(int argc, char **argv)
             usage();
         }
     }
-    printf("text\tdata\tbss\tdec\thex\tsyms\tfilename\n");
+    printf("text\tdata\tbss\tdec\thex\tsyms\tsegoff\tfilename\n");
     for(i = 1; i < argc; i++)
     {
         if((file = fopen(argv[i], "rb")))
         {
             fread(&aout, 1, sizeof(aout_t), file);
             if
+            (
+                aout.signature == AOUT_PICO_EXEC
+            )
+            {
+                printf
+                (
+                    "%d\t%d\t%d\t%d\t%x\t%d\t%d\t%s\n",
+                    aout.text,
+                    aout.data,
+                    aout.bss,
+                    aout.text+aout.data+aout.bss,
+                    aout.text+aout.data+aout.bss,
+                    aout.syms,
+                    aout.pad,
+                    argv[i]
+                );
+            }
+            else if
             (
                 aout.signature == AOUT_PICO_EXEC ||
                 aout.signature == AOUT_PICO_OBJ ||
@@ -39,7 +57,7 @@ int main(int argc, char **argv)
             )
             printf
             (
-                "%d\t%d\t%d\t%d\t%x\t%d\t%s\n",
+                "%d\t%d\t%d\t%d\t%x\t%d\t0\t%s\n",
                 aout.text,
                 aout.data,
                 aout.bss,

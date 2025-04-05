@@ -88,3 +88,6 @@ run_2880: all
 
 run_hd: all
 	@qemu-system-i386 -debugcon stdio -m 4 -drive file=distro/10404.img,format=raw,if=ide,media=disk
+
+debug: all
+	@bochs -debugger

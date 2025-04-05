@@ -9,3 +9,8 @@ cothread_init();
 yield();
 cothread_new(code_seg, code_off, data_seg, data_off);
 proc_exec(aout_seg);
+
+volumes_init();
+
+syscalls_init();
+syscall(cmd, arg0, arg1, arg2, arg3);

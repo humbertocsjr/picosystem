@@ -1,5 +1,245 @@
+
+struct OBJ_WDISK
+{
+    WDISK_ID,
+    WDISK_CYLS,
+    WDISK_HEADS,
+    WDISK_SECTS
+};
+
+const MAX_DISKS = 10;
+
+auto _disks[MAX_DISKS], _disks_next = 0, _disks_data[MAX_DISKS * OBJ_WDISK]; 
+auto _count = 0;
+
+get_floppy_count()
+{
+    return (((*0x40:0x10) >> 6) & 1) + 1;
+}
+
+get_hd_count()
+{
+    return @0x40:0x75;
+}
+
+disk_read_low_level(disk_id, cyl, head, sect, block)
+{
+    auto res = 1;
+    auto tries = 3;
+    while(tries--)
+    {
+        asm
+        (
+            "mov ch, [bp+6]",
+            "mov cl, [bp+10]",
+            "mov dh, [bp+8]",
+            "mov al, [bp+7]",
+            "rol al, 1",
+            "rol al, 1",
+            "and al, 0xc0",
+            "and cl, 0x3f",
+            "or cl, al",
+            "mov bx, [bp+12]",
+            "mov dl, [bp+4]",
+            "mov ax, 0x201",
+            "push bp",
+            "int 0x13",
+            "pop bp",
+            "jnc .end",
+            "mov word [bp-2], 0",
+            "mov ax, 0",
+            "mov dl, [bp+4]",
+            "push bp",
+            "int 0x13",
+            "pop bp",
+            ".end:"
+        );
+        if(res) return res;
+    }
+}
+
+disk_write_low_level(disk_id, cyl, head, sect, block)
+{
+    auto res = 1;
+    auto tries = 3;
+    while(tries--)
+    {
+        asm
+        (
+            "mov ch, [bp+6]",
+            "mov cl, [bp+10]",
+            "mov dh, [bp+8]",
+            "mov al, [bp+7]",
+            "rol al, 1",
+            "rol al, 1",
+            "and al, 0xc0",
+            "and cl, 0x3f",
+            "or cl, al",
+            "mov bx, [bp+12]",
+            "mov dl, [bp+4]",
+            "mov ax, 0x301",
+            "push bp",
+            "int 0x13",
+            "pop bp",
+            "jnc .end",
+            "mov word [bp-2], 0",
+            "mov ax, 0",
+            "mov dl, [bp+4]",
+            "push bp",
+            "int 0x13",
+            "pop bp",
+            ".end:"
+        );
+        if(res) return res;
+    }
+}
+
+get_hd_params(disk_id)
+{
+    auto disk_bios_id = _disks[disk_id][WDISK_ID];
+    auto cyls = 0;
+    auto heads = 0;
+    auto sects = 0;
+    asm
+    (
+        "mov ah, 8",
+        "mov dl, [bp-2]",
+        "push bp",
+        "int 0x13",
+        "pop bp",
+        "mov [bp-4], ch",
+        "mov [bp-3], cl",
+        "rol byte [bp-3], 1",
+        "rol byte [bp-3], 1",
+        "and byte [bp-3], 0x3",
+        "mov [bp-6], cl",
+        "and word [bp-6], 0x3f",
+        "mov [bp-8], dh",
+        "inc word [bp-8]"
+    );
+    if(cyls && heads && sects) 
+    {
+        _disks[disk_id][WDISK_CYLS] = cyls;
+        _disks[disk_id][WDISK_HEADS] = heads;
+        _disks[disk_id][WDISK_SECTS] = sects;
+        return 1;
+    }
+    return 0;
+}
+
+try_get_disk_params(disk_id)
+{
+    auto buffer[512 bytes];
+    if((_disks[disk_id][WDISK_ID] & 0x80) == 0x80)
+    {
+        return get_hd_params(disk_id);
+    }
+    else
+    {
+        if(disk_read_low_level(_disks[disk_id][WDISK_ID], 79, 1, 36, buffer))
+        {
+            _disks[disk_id][WDISK_CYLS] = 80;
+            _disks[disk_id][WDISK_HEADS] = 2;
+            _disks[disk_id][WDISK_SECTS] = 36;
+            return 1;
+        }
+        if(disk_read_low_level(_disks[disk_id][WDISK_ID], 79, 1, 18, buffer))
+        {
+            _disks[disk_id][WDISK_CYLS] = 80;
+            _disks[disk_id][WDISK_HEADS] = 2;
+            _disks[disk_id][WDISK_SECTS] = 18;
+            return 1;
+        }
+        if(disk_read_low_level(_disks[disk_id][WDISK_ID], 39, 1, 18, buffer))
+        {
+            _disks[disk_id][WDISK_CYLS] = 40;
+            _disks[disk_id][WDISK_HEADS] = 2;
+            _disks[disk_id][WDISK_SECTS] = 18;
+            return 1;
+        }
+        if(disk_read_low_level(_disks[disk_id][WDISK_ID], 79, 1, 15, buffer))
+        {
+            _disks[disk_id][WDISK_CYLS] = 80;
+            _disks[disk_id][WDISK_HEADS] = 2;
+            _disks[disk_id][WDISK_SECTS] = 15;
+            return 1;
+        }
+        if(disk_read_low_level(_disks[disk_id][WDISK_ID], 39, 1, 9, buffer))
+        {
+            _disks[disk_id][WDISK_CYLS] = 40;
+            _disks[disk_id][WDISK_HEADS] = 2;
+            _disks[disk_id][WDISK_SECTS] = 9;
+            return 1;
+        }
+        if(disk_read_low_level(_disks[disk_id][WDISK_ID], 39, 0, 9, buffer))
+        {
+            _disks[disk_id][WDISK_CYLS] = 40;
+            _disks[disk_id][WDISK_HEADS] = 1;
+            _disks[disk_id][WDISK_SECTS] = 9;
+            return 1;
+        }
+    }
+    return 0;
+}
+
+disk_read(disk_id, lba, buffer)
+{
+    auto disk = _disks[disk_id];
+    auto disk_id = disk[WDISK_ID];
+    if(disk[WDISK_HEADS] == 0 || disk[WDISK_SECTS] == 0) if(try_get_disk_params(disk_id) == 0) return 0;
+    auto cyl = unsigned(lba / (disk[WDISK_HEADS] * disk[WDISK_SECTS]));
+    auto head = unsigned((lba / disk[WDISK_SECTS]) % disk[WDISK_HEADS]);
+    auto sect = unsigned(lba % disk[WDISK_SECTS]) + 1;
+    return disk_read_low_level(disk_id, cyl, head, sect, buffer);
+}
+
+disk_write(disk_id, lba, buffer)
+{
+    auto disk = _disks[disk_id];
+    auto disk_id = disk[WDISK_ID];
+    if(disk[WDISK_HEADS] == 0 || disk[WDISK_SECTS] == 0) if(try_get_disk_params(disk_id) == 0) return 0;
+    auto cyl = unsigned(lba / (disk[WDISK_HEADS] * disk[WDISK_SECTS]));
+    auto head = unsigned((lba / disk[WDISK_SECTS]) % disk[WDISK_HEADS]);
+    auto sect = unsigned(lba % disk[WDISK_SECTS]) + 1;
+    return disk_write_low_level(disk_id, cyl, head, sect, buffer);
+}
+
 // BIOS Disk Controller
 main()
 {
-    
+    auto i;
+    for(i = 0; i < MAX_DISKS; i++)
+    {
+        _disks[i] = &_disks_data[i * OBJ_WDISK];
+        _disks[i][WDISK_ID] = 0;
+        _disks[i][WDISK_CYLS] = 0;
+        _disks[i][WDISK_HEADS] = 0;
+        _disks[i][WDISK_SECTS] = 0;
+    }
+    _disks_next = 0;
+    for(i = 0; i < get_floppy_count(); i++)
+    {
+        _disks[_disks_next][WDISK_ID] = i;
+        _disks[_disks_next][WDISK_CYLS] = 0;
+        _disks[_disks_next][WDISK_HEADS] = 0;
+        _disks[_disks_next][WDISK_SECTS] = 0;
+        try_get_disk_params(_disks_next);
+        _disks_next++;
+    }
+    for(i = 0; i < get_hd_count(); i++)
+    {
+        _disks[_disks_next][WDISK_ID] = i | 0x80;
+        _disks[_disks_next][WDISK_CYLS] = 0;
+        _disks[_disks_next][WDISK_HEADS] = 0;
+        _disks[_disks_next][WDISK_SECTS] = 0;
+        try_get_disk_params(_disks_next);
+        _disks_next++;
+    }
+    while(1) 
+    {
+        yield();
+        //asm("xchg bx, bx");
+        tty_set_position(0, 3);
+        tty_write_hex(_count++);
+    }
 }

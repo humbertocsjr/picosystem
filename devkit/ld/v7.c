@@ -234,6 +234,7 @@ void output_v7(int stack_size, int include_bss)
     }
     _aout.entry = entry_sym->value;
     fseek(_out, 0, SEEK_SET);
+    if(_aout.signature == AOUT_PICO_EXEC) _aout.pad = get_value("__segoff");
     fwrite(&_aout, 1, sizeof(aout_t), _out);
 }
 

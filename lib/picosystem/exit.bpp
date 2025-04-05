@@ -1,0 +1,13 @@
+
+syscall(cmd, arg0, arg1, arg2, arg3);
+yield();
+
+exit(result)
+{
+    asm
+    (
+        "xchg bx, bx"
+    );
+    syscall(0, result, 0, 0, 0);
+    while(1) yield();
+}

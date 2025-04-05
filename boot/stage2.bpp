@@ -1,6 +1,6 @@
 auto _buffer[512 bytes];
 auto _version = 0, _revision = 90;
-auto _dest_seg = 0x60, _dest_off = 0, _kernel_seg, _kernel_cfg[20];
+auto _dest_seg = 0x60, _dest_off = 0, _kernel_seg, _kernel_cfg[21];
 
 disk_read(disk, heads, sects, address, buffer)
 {//       4     6      8      10       12
@@ -182,7 +182,7 @@ main()
     tty_clean();
     tty_hide_cursor();
 
-    ui_draw_frame(10, 3, 60, 19, "Pico System Software");
+    ui_draw_frame(10, 3, 60, 19, "Pico System Loader");
 
     str_clean(txt, 128);
     str_copy(txt, "Loading Kernel", 128);
@@ -203,49 +203,92 @@ main()
     _kernel_cfg[0] = pfs_load_exec("/System/Extensions/0.kext");
     str_concat(txt, " .", 128);
     ui_draw_text(12, 5, 56, 1, txt, 7);
-    _kernel_cfg[1] = pfs_load_exec("/System/Extensions/1.kext");
+    if(_kernel_cfg[0])
+        _kernel_cfg[1] = pfs_load_exec("/System/Extensions/1.kext");
+    else _kernel_cfg[1] = 0;
     str_concat(txt, " .", 128);
     ui_draw_text(12, 5, 56, 1, txt, 7);
-    _kernel_cfg[2] = pfs_load_exec("/System/Extensions/2.kext");
+    if(_kernel_cfg[1])
+        _kernel_cfg[2] = pfs_load_exec("/System/Extensions/2.kext");
+    else _kernel_cfg[2] = 0;
     str_concat(txt, " .", 128);
     ui_draw_text(12, 5, 56, 1, txt, 7);
-    _kernel_cfg[3] = pfs_load_exec("/System/Extensions/3.kext");
+    if(_kernel_cfg[2])
+        _kernel_cfg[3] = pfs_load_exec("/System/Extensions/3.kext");
+    else _kernel_cfg[3] = 0;
     str_concat(txt, " .", 128);
     ui_draw_text(12, 5, 56, 1, txt, 7);
-    _kernel_cfg[4] = pfs_load_exec("/System/Extensions/4.kext");
+    if(_kernel_cfg[3])
+        _kernel_cfg[4] = pfs_load_exec("/System/Extensions/4.kext");
+    else _kernel_cfg[4] = 0;
     str_concat(txt, " .", 128);
     ui_draw_text(12, 5, 56, 1, txt, 7);
-    _kernel_cfg[5] = pfs_load_exec("/System/Extensions/5.kext");
+    if(_kernel_cfg[4])
+        _kernel_cfg[5] = pfs_load_exec("/System/Extensions/5.kext");
+    else _kernel_cfg[5] = 0;
     str_concat(txt, " .", 128);
     ui_draw_text(12, 5, 56, 1, txt, 7);
-    _kernel_cfg[6] = pfs_load_exec("/System/Extensions/6.kext");
+    if(_kernel_cfg[4])
+        _kernel_cfg[6] = pfs_load_exec("/System/Extensions/6.kext");
+    else _kernel_cfg[6] = 0;
     str_concat(txt, " .", 128);
     ui_draw_text(12, 5, 56, 1, txt, 7);
-    _kernel_cfg[7] = pfs_load_exec("/System/Extensions/7.kext");
+    if(_kernel_cfg[6])
+        _kernel_cfg[7] = pfs_load_exec("/System/Extensions/7.kext");
+    else _kernel_cfg[7] = 0;
     str_concat(txt, " .", 128);
     ui_draw_text(12, 5, 56, 1, txt, 7);
-    _kernel_cfg[8] = pfs_load_exec("/System/Extensions/8.kext");
+    if(_kernel_cfg[7])
+        _kernel_cfg[8] = pfs_load_exec("/System/Extensions/8.kext");
+    else _kernel_cfg[8] = 0;
     str_concat(txt, " .", 128);
     ui_draw_text(12, 5, 56, 1, txt, 7);
-    _kernel_cfg[9] = pfs_load_exec("/System/Extensions/9.kext");
+    if(_kernel_cfg[8])
+        _kernel_cfg[9] = pfs_load_exec("/System/Extensions/9.kext");
+    else _kernel_cfg[9] = 0;
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    if(_kernel_cfg[9])
+        _kernel_cfg[10] = pfs_load_exec("/System/Extensions/10.kext");
+    else _kernel_cfg[10] = 0;
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    if(_kernel_cfg[10])
+        _kernel_cfg[11] = pfs_load_exec("/System/Extensions/11.kext");
+    else _kernel_cfg[11] = 0;
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    if(_kernel_cfg[11])
+        _kernel_cfg[12] = pfs_load_exec("/System/Extensions/12.kext");
+    else _kernel_cfg[12] = 0;
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    if(_kernel_cfg[12])
+        _kernel_cfg[13] = pfs_load_exec("/System/Extensions/13.kext");
+    else _kernel_cfg[13] = 0;
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    if(_kernel_cfg[13])
+        _kernel_cfg[14] = pfs_load_exec("/System/Extensions/14.kext");
+    else _kernel_cfg[14] = 0;
+    str_concat(txt, " .", 128);
+    ui_draw_text(12, 5, 56, 1, txt, 7);
+    if(_kernel_cfg[14])
+        _kernel_cfg[15] = pfs_load_exec("/System/Extensions/15.kext");
+    else _kernel_cfg[15] = 0;
     str_concat(txt, " . [ OK ]", 128);
     ui_draw_text(12, 5, 56, 1, txt, 7);
     str_clean(txt, 128);
     str_copy(txt, "Loading User Interface", 128);
     ui_draw_text(12, 6, 56, 1, txt, 7);
-    _kernel_cfg[10] = pfs_load_exec("/System/Init");
+    _kernel_cfg[16] = pfs_load_exec("/System/Init");
     str_concat(txt, " . [ OK ]", 128);
     ui_draw_text(12, 6, 56, 1, txt, 7);
     ui_draw_text(12, 7, 56, 1, "Starting Kernel", 7);
-    _kernel_cfg[11] = 0;
-    _kernel_cfg[12] = 0;
-    _kernel_cfg[13] = 0;
-    _kernel_cfg[14] = 0;
-    _kernel_cfg[15] = 0;
-    _kernel_cfg[16] = boot_get_arg0();
-    _kernel_cfg[17] = boot_get_arg1();
-    _kernel_cfg[18] = boot_get_arg2();
-    _kernel_cfg[19] = _dest_seg;
+    _kernel_cfg[17] = boot_get_arg0();
+    _kernel_cfg[18] = boot_get_arg1();
+    _kernel_cfg[19] = boot_get_arg2();
+    _kernel_cfg[20] = _dest_seg;
     //halt();
     tty_clean();
     asm

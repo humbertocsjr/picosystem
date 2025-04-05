@@ -577,4 +577,15 @@ void cg_store_far_word()
     out("pop ds");
 }
 
+void cg_case_jump(int true_lbl)
+{
+    out("cmp ax, cx");
+    out("je L%d", true_lbl);
+}
 
+void cg_case_do(int true_lbl, int false_lbl)
+{
+    out("mov ax, cx");
+    out("jmp L%d", false_lbl);
+    out("L%d:", true_lbl);
+}

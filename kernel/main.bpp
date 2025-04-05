@@ -1,81 +1,79 @@
-struct OBJ_FCFG
+struct OBJ_WCFG
 {
-    FCFG_KEXTS,
-    FCFG_DISK_ID = 32,
-    FCFG_DISK_HEADS = 34,
-    FCFG_DISK_SECTS = 36,
-    FCFG_LAST_USED_SEG = 38
+    WCFG_KEXTS,
+    WCFG_INIT = 16,
+    WCFG_DISK_ID,
+    WCFG_DISK_HEADS,
+    WCFG_DISK_SECTS,
+    WCFG_LAST_USED_SEG
 }
 
 auto _count = 0;
-
-test_thread()
-{
-    while(1) 
-    {
-        tty_set_position(0, 0);
-        tty_write_hex(_count++);
-        yield();
-    }
-        
-}
-auto test_stack[512 byte];
-
-test2_thread()
-{
-    while(1) 
-    {
-        tty_set_position(20, 0);
-        tty_write_hex(_count++);
-        yield();
-    }
-        
-}
-auto test2_stack[512 byte];
+auto _cfg[21];
 
 main()
 {
-    auto i, j, cfg_seg, cfg_off, module_seg, txt[128 bytes];
+    auto i, x,x_progress, cfg_seg, cfg_off, module_seg, txt[128 bytes];
     console_init();
     cothread_init();
+    volumes_init();
+    syscalls_init();
     tty_clean();
     tty_hide_cursor();
     cfg_seg = boot_get_arg0();
     cfg_off = boot_get_arg1();
+    for(i = 0; i < 21; i++)
+    {
+        _cfg[i] = *cfg_seg:(cfg_off + (i << 1));
+    }
     str_clean(txt, 128);
-    str_concat(txt, "Pico System Software v", 128);
+    str_concat(txt, "System Software v", 128);
     str_concat_uint(txt, VERSION, 128);
     str_concat(txt, ".", 128);
     str_concat_uint(txt, REVISION, 128);
-    ui_draw_frame(10,1, 60, console_get_height() - 2, txt);
-    for(i = 0; i < 16; i ++)
-    {
-        // Load Module
-        module_seg = *cfg_seg:(cfg_off + (i << 1));
-        if(module_seg)
-        {
-            str_clean(txt, 128);
-            str_concat(txt, "Starting extension at $", 128);
-            str_concat_hex(txt, module_seg, 128);
-            str_concat(txt, "0", 128);
-            ui_draw_text(12, 2+j++, 56, 1, txt, 7);
-            proc_exec(module_seg);
-        }
-    }
+    x = (80 - str_len(txt, 128)) >> 1;
+    x_progress = (80-18) >> 1;
+    ui_draw_text(x, (console_get_height() - 4) >> 1, 40, 1, "Pico", 8);
+    ui_draw_text(x, (console_get_height() - 4) >> 1 + 1, 40, 1, "System Software", 7);
+    ui_draw_text(x_progress, (console_get_height() - 4) >> 1 + 3, 40, 1, "[                ]", 8);
+    str_clean(txt, 128);
+    str_concat(txt, "v", 128);
+    str_concat_uint(txt, VERSION, 128);
+    str_concat(txt, ".", 128);
+    str_concat_uint(txt, REVISION, 128);
+    ui_draw_text(x + 16, (console_get_height() - 4) >> 1 + 1, 10, 1, txt, 8);
     str_clean(txt, 128);
     str_concat(txt, "Memory in use: ", 128);
-    str_concat_uint(txt, unsigned((*cfg_seg:(cfg_off + FCFG_LAST_USED_SEG) + 63) >> 6), 128);
+    str_concat_uint(txt, unsigned((_cfg[WCFG_LAST_USED_SEG] + 63) >> 6), 128);
     str_concat(txt, " KiB", 128);
-    ui_draw_text(12, 2+j++, 56, 1, txt, 7);
-    cothread_new(mem_get_code_seg(), &test_thread, mem_get_data_seg(), &test_stack[512 bytes]);
-    cothread_new(mem_get_code_seg(), &test2_thread, mem_get_data_seg(), &test2_stack[512 bytes]);
-    tty_set_position(70, 0);
-    tty_write_uint(console_get_height());
+    ui_draw_text(0, console_get_height() -1, 56, 1, txt, 8);
+    str_clean(txt, 128);
+    syscall(3,1,2,3,4);
+    for(i = 0; i < 16; i ++)
+    {
+        str_concat_c(txt, 0xd3, 128);
+        ui_draw_text(x_progress + 1, (console_get_height() - 4) >> 1 + 3, 16, 1, txt, 8);
+        module_seg = _cfg[i];
+        if(module_seg)
+        {
+            proc_exec(module_seg);
+        }
+        yield();
+        asm("hlt");
+    }
+    module_seg = _cfg[WCFG_INIT];
+    if(module_seg)
+    {
+        proc_exec(module_seg);
+    }
     while(1)
     {
         yield();
-        asm("hlt");
-        tty_set_position(40, 0);
+        if((_count & 0x3) == 0)
+        {
+            asm("hlt");
+        }
+        tty_set_position(0, 20);
         tty_write_hex(_count++);
     }
 }

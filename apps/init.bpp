@@ -1,4 +1,29 @@
+auto _width = 80, _height = 25;
+
+console_init()
+{
+    asm
+    (
+        "push bp",
+        "push es",
+        "mov ax, 0x1130",
+        "xor bx, bx",
+        "int 0x10",
+        "inc dl",
+        "mov [__height], dl",
+        "mov ax, 0xf00",
+        "int 0x10",
+        "mov [__width], ah",
+        "pop es",
+        "pop bp"
+    );
+    ui_conf_frame(0xc0, 0xc1, 0xc2, 0xc5, 0xc1, 0xc6, 0xc7, 0xc7, 0xd0, 0xd1);
+    ui_conf_panel(0xc0, 0xc1, 0xc2, 0xc5, 0xc1, 0xc6, 0xc7, 0xc7);
+    tty_clean();
+}
+
 main()
 {
-    
+    console_init();
+    ui_draw_panel(20,(_height-14) >> 1,40,14, 8);
 }

@@ -17,6 +17,9 @@ ui_draw_text(left,top,width,height,text,attrib);
 ui_conf_frame(left_top, top, right_top, left_botton, botton, right_botton, left, right, title_left, title_right);
 ui_draw_frame(left,top,width,height,title);
 ui_draw_button(left,top,width,text,selected);
+ui_draw_inputbox(left,top,width,text,selected,pos);
+ui_conf_panel(left_top, top, right_top, left_botton, botton, right_botton, left, right);
+ui_draw_panel(left,top,width,height,color);
 
 // Far Handling
 far_write(seg, dst, src, size);
@@ -31,8 +34,12 @@ str_concat_c(dst, c, size);
 str_concat_sint(dst, value, size);
 str_concat_uint(dst, value, size);
 str_concat_hex(dst, value, size);
+str_concat_substr(dst, src, size, src_offset, src_len);
 str_equal(s1, s2, size);
 
 // Memory Handling
 mem_get_code_seg();
 mem_get_data_seg();
+
+// Operating System
+exit(result);
